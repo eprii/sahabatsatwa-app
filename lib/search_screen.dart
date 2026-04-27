@@ -102,7 +102,7 @@ class _SearchScreenState extends State<SearchScreen> {
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
-                    .collection('sahabatsatwa-app')
+                    .collection('destination')
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {

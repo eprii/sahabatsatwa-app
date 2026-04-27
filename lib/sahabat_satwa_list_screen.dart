@@ -14,7 +14,7 @@ class SahabatSatwaListScreen extends StatelessWidget {
       body: SafeArea(
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
-              .collection('sahabatsatwa-app')
+              .collection('destination')
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {

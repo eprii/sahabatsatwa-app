@@ -77,20 +77,20 @@ class SahabatSatwa {
 
   static Future<void> addData(SahabatSatwa data) async {
     await FirebaseFirestore.instance
-        .collection('sahabatsatwa-app')
+        .collection('destination')
         .add(data.toMap());
   }
 
   static Future<void> updateData(String id, SahabatSatwa data) async {
     await FirebaseFirestore.instance
-        .collection('sahabatsatwa-app')
+        .collection('destination')
         .doc(id)
         .update(data.toMap());
   }
 
   static Future<void> deleteData(String id) async {
     await FirebaseFirestore.instance
-        .collection('sahabatsatwa-app')
+        .collection('destination')
         .doc(id)
         .delete();
   }

@@ -23,7 +23,7 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
       backgroundColor: AppTheme.background,
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('sahabatsatwa-app')
+            .collection('destination')
             .doc(data.id_zoo)
             .snapshots(),
         builder: (context, snapshot) {
