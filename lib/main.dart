@@ -68,7 +68,7 @@ class _MainNavigationState extends State<MainNavigation> {
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
             BottomNavigationBarItem(icon: Icon(Icons.search_rounded), label: 'Search'),
-            BottomNavigationBarItem(icon: Icon(Icons.add_circle, size: 36), label: 'Admin'),
+            BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline_outlined, size: 36), label: 'Admin'),
             BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
           ],
         ),
