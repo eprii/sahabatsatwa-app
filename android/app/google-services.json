@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "160734617668",
+    "project_id": "sahabatsatwa-app",
+    "storage_bucket": "sahabatsatwa-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:160734617668:android:7de781ba48030d6b6d9c11",
+        "android_client_info": {
+          "package_name": "com.example.sahabatsatwa_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiTh-kGq-HvI4yfFWPb6LzAxZBPgvGiKk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:160734617668:android:63459c0f32bc0c846d9c11",
+        "android_client_info": {
+          "package_name": "com.example.sahabatsatwa_basic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiTh-kGq-HvI4yfFWPb6LzAxZBPgvGiKk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
