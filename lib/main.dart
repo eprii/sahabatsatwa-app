@@ -6,6 +6,7 @@ import 'sahabat_satwa_list_screen.dart';
 import 'search_screen.dart';
 import 'admin_list_screen.dart';
 import 'profile_screen.dart';
+import 'splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'SahabatSatwa',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: const MainNavigation(),
+      home: const SplashScreen(),
     );
   }
 }
