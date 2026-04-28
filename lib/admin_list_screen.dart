@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'sahabat_satwa_model.dart';
 import 'detail_sahabat_satwa_screen.dart';
 import 'tambah_sahabat_satwa_screen.dart';
@@ -19,7 +20,8 @@ class AdminListScreen extends StatelessWidget {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: Colors.white));
+              return const Center(
+                  child: CircularProgressIndicator(color: Colors.white));
             }
 
             final docs = snapshot.data?.docs ?? [];
@@ -66,7 +68,13 @@ class AdminListScreen extends StatelessWidget {
                                 color: AppTheme.primary,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.add, color: Colors.white),
+                              child: Center(
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedPlusSign,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -74,7 +82,6 @@ class AdminListScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   sliver: SliverList(
@@ -96,7 +103,11 @@ class AdminListScreen extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (_) => const TambahSahabatSatwaScreen()),
         ),
-        child: const Icon(Icons.add, color: Colors.white),
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedPlusSign,
+          color: Colors.white,
+          size: 24,
+        ),
       ),
     );
   }
@@ -172,8 +183,11 @@ class _AdminCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
               child: Row(children: [
-                const Icon(Icons.location_on_outlined,
-                    size: 13, color: AppTheme.textMuted),
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedLocation01,
+                  color: AppTheme.textMuted,
+                  size: 13,
+                ),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(zoo.alamat,
@@ -193,8 +207,7 @@ class _AdminCard extends StatelessWidget {
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                DetailSahabatSatwaScreen(data: zoo)),
+                            builder: (_) => DetailSahabatSatwaScreen(data: zoo)),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppTheme.primary),
@@ -217,15 +230,12 @@ class _AdminCard extends StatelessWidget {
                             content: const Text('Yakin ingin menghapus?'),
                             actions: [
                               TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
+                                  onPressed: () => Navigator.pop(context, false),
                                   child: const Text('Batal')),
                               TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, true),
+                                  onPressed: () => Navigator.pop(context, true),
                                   child: const Text('Hapus',
-                                      style:
-                                          TextStyle(color: Colors.red))),
+                                      style: TextStyle(color: Colors.red))),
                             ],
                           ),
                         );
@@ -255,6 +265,10 @@ class _AdminCard extends StatelessWidget {
         height: 160,
         width: double.infinity,
         color: Colors.grey[300],
-        child: const Icon(Icons.photo, size: 40, color: Colors.grey),
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedImage01,
+          color: Colors.grey,
+          size: 40,
+        ),
       );
 }

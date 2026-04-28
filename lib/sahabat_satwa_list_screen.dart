@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'sahabat_satwa_model.dart';
 import 'detail_sahabat_satwa_screen.dart';
 import 'app_theme.dart';
@@ -23,8 +24,7 @@ class SahabatSatwaListScreen extends StatelessWidget {
             }
 
             final docs = snapshot.data?.docs ?? [];
-            final zoos =
-                docs.map((d) => SahabatSatwa.fromDocument(d)).toList();
+            final zoos = docs.map((d) => SahabatSatwa.fromDocument(d)).toList();
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,30 +43,26 @@ class SahabatSatwaListScreen extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.white24,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           '${zoos.length} destinasi',
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 13),
+                          style: const TextStyle(color: Colors.white, fontSize: 13),
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                // ZOO LIST pakai ListView + Card + ListTile
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: zoos.length,
                     itemBuilder: (context, index) {
                       final zoo = zoos[index];
-
                       return Card(
                         margin: const EdgeInsets.only(bottom: 14),
                         color: AppTheme.cardBg,
@@ -77,7 +73,6 @@ class SahabatSatwaListScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Foto di atas ListTile
                             Stack(
                               children: [
                                 ClipRRect(
@@ -89,8 +84,7 @@ class SahabatSatwaListScreen extends StatelessWidget {
                                           height: 160,
                                           width: double.infinity,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              _placeholder(),
+                                          errorBuilder: (_, __, ___) => _placeholder(),
                                         )
                                       : _placeholder(),
                                 ),
@@ -102,10 +96,8 @@ class SahabatSatwaListScreen extends StatelessWidget {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: AppTheme.primaryDark
-                                            .withOpacity(0.85),
-                                        borderRadius:
-                                            BorderRadius.circular(20),
+                                        color: AppTheme.primaryDark.withOpacity(0.85),
+                                        borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
                                         zoo.provinsi,
@@ -131,44 +123,45 @@ class SahabatSatwaListScreen extends StatelessWidget {
                               ),
                               subtitle: Row(
                                 children: [
-                                  const Icon(Icons.location_on_outlined,
-                                      size: 13, color: AppTheme.textMuted),
+                                  HugeIcon(
+                                    icon: HugeIcons.strokeRoundedLocation01,
+                                    color: AppTheme.textMuted,
+                                    size: 13,
+                                  ),
                                   const SizedBox(width: 2),
                                   Expanded(
                                     child: Text(
                                       zoo.alamat.isNotEmpty ? zoo.alamat : '-',
                                       style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.textMuted),
+                                          fontSize: 12, color: AppTheme.textMuted),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
                               ),
-                              trailing: const Icon(Icons.chevron_right,
-                                  color: AppTheme.textMuted),
+                              trailing: HugeIcon(
+                                icon: HugeIcons.strokeRoundedArrowRight01,
+                                color: AppTheme.textMuted,
+                                size: 20,
+                              ),
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      DetailSahabatSatwaScreen(data: zoo),
+                                  builder: (_) => DetailSahabatSatwaScreen(data: zoo),
                                 ),
                               ),
                             ),
 
-                            // Tombol Lihat Detail
                             Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
                               child: SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
                                   onPressed: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          DetailSahabatSatwaScreen(data: zoo),
+                                      builder: (_) => DetailSahabatSatwaScreen(data: zoo),
                                     ),
                                   ),
                                   child: const Text('Lihat Detail'),
@@ -194,7 +187,11 @@ class SahabatSatwaListScreen extends StatelessWidget {
       height: 160,
       width: double.infinity,
       color: Colors.grey[300],
-      child: const Icon(Icons.photo, size: 48, color: Colors.grey),
+      child: HugeIcon(
+        icon: HugeIcons.strokeRoundedImage01,
+        color: Colors.grey,
+        size: 48,
+      ),
     );
   }
 }

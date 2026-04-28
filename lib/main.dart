@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'firebase_options.dart';
 import 'app_theme.dart';
 import 'sahabat_satwa_list_screen.dart';
@@ -9,15 +10,11 @@ import 'profile_screen.dart';
 import 'splash_screen.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
-
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
   FlutterNativeSplash.remove();
-  
   runApp(const MyApp());
 }
 
@@ -73,11 +70,27 @@ class _MainNavigationState extends State<MainNavigation> {
           showSelectedLabels: false,
           showUnselectedLabels: false,
           elevation: 0,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.search_rounded), label: 'Search'),
-            BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline_outlined, size: 32), label: 'Admin'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+          items: [
+            BottomNavigationBarItem(
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedHome01, color: Colors.grey, size: 24),
+              activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedHome01, color: AppTheme.primary, size: 24),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Colors.grey, size: 24),
+              activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: AppTheme.primary, size: 24),
+              label: 'Search',
+            ),
+            BottomNavigationBarItem(
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedPlusSign, color: Colors.grey, size: 29),
+              activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedPlusSign, color: AppTheme.primary, size: 29),
+              label: 'Add',
+            ),
+            BottomNavigationBarItem(
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedUser, color: Colors.grey, size: 26),
+              activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedUser, color: AppTheme.primary, size: 26),
+              label: 'Profile',
+            ),
           ],
         ),
       ),

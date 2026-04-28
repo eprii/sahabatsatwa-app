@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'sahabat_satwa_model.dart';
 import 'detail_sahabat_satwa_screen.dart';
 import 'app_theme.dart';
@@ -25,7 +26,6 @@ class _SearchScreenState extends State<SearchScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Search bar
             Container(
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -38,7 +38,11 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.search, color: AppTheme.textMuted),
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedSearch01,
+                    color: AppTheme.textMuted,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
@@ -57,13 +61,16 @@ class _SearchScreenState extends State<SearchScreen> {
                         _searchController.clear();
                         setState(() => _query = '');
                       },
-                      child: const Icon(Icons.close, color: AppTheme.textMuted, size: 18),
+                      child: HugeIcon(
+                        icon: HugeIcons.strokeRoundedCancel01,
+                        color: AppTheme.textMuted,
+                        size: 18,
+                      ),
                     ),
                 ],
               ),
             ),
 
-            // Filter chips provinsi
             SizedBox(
               height: 44,
               child: ListView.builder(
@@ -98,7 +105,6 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Results
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -106,7 +112,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator(color: Colors.white));
+                    return const Center(
+                        child: CircularProgressIndicator(color: Colors.white));
                   }
 
                   var zoos = snapshot.data!.docs
@@ -184,11 +191,16 @@ class _SearchCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 12, color: AppTheme.textMuted),
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedLocation01,
+                        color: AppTheme.textMuted,
+                        size: 12,
+                      ),
                       const SizedBox(width: 2),
                       Expanded(
                         child: Text(zoo.alamat,
-                            style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                            style: const TextStyle(
+                                fontSize: 12, color: AppTheme.textMuted),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ),
@@ -197,19 +209,26 @@ class _SearchCard extends StatelessWidget {
                   if (zoo.provinsi.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.only(top: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppTheme.primary.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(zoo.provinsi,
                           style: const TextStyle(
-                              fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                              fontSize: 10,
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.w600)),
                     ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppTheme.textMuted),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              color: AppTheme.textMuted,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -220,6 +239,10 @@ class _SearchCard extends StatelessWidget {
         width: 70,
         height: 70,
         color: Colors.grey[300],
-        child: const Icon(Icons.photo, color: Colors.grey),
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedImage01,
+          color: Colors.grey,
+          size: 24,
+        ),
       );
 }

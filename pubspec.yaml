@@ -17,6 +17,7 @@ dependencies:
   latlong2: ^0.9.0
   google_fonts: ^8.0.2
   cupertino_icons: ^1.0.8
+  hugeicons: ^1.1.0
   
 
 dev_dependencies:
@@ -41,11 +42,12 @@ flutter_native_splash:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/icon.jpg"
+  image_path: "assets/icon/sahabatsatwa_app_logo.png"
   min_sdk_android: 21
 
 flutter:
   uses-material-design: true
   assets:
+    - assets/icon/sahabatsatwa_app_logo.png
     - assets/icon/sahabatsatwa_logo.png
     - assets/icon/sahabatsatwa_logo_native_splash.png

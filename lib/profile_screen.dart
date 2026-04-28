@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'app_theme.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -13,10 +14,14 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 48,
                 backgroundColor: Colors.white24,
-                child: Icon(Icons.person, size: 48, color: Colors.white),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUser,
+                  color: Colors.white,
+                  size: 48,
+                ),
               ),
               const SizedBox(height: 16),
               const Text('Admin SahabatSatwa',
