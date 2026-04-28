@@ -34,26 +34,65 @@ class SahabatSatwaListScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'SahabatSatwa',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Image.asset(
+                            'assets/icon/sahabatsatwa_logo.png',
+                            width: 36,
+                            height: 36,
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'SahabatSatwa',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white24,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '${zoos.length} destinasi',
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
-                        ),
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedSettings01,
+                        color: Colors.white,
+                        size: 24,
                       ),
                     ],
+                  ),
+                ),
+
+                // ── GREETING CARD ──
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF3D5C33),
+                          Color(0xFF6B8C5A),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Temukan Kebun\nBinatang Favoritmu!',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                          ),
+                        ),
+                        
+                      ],
+                    ),
                   ),
                 ),
 
@@ -81,7 +120,7 @@ class SahabatSatwaListScreen extends StatelessWidget {
                                   child: zoo.foto_url.isNotEmpty
                                       ? Image.network(
                                           zoo.foto_url,
-                                          height: 160,
+                                          height: 120,
                                           width: double.infinity,
                                           fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => _placeholder(),
