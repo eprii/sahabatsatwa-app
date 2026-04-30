@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'sahabat_satwa_model.dart';
 import 'edit_sahabat_satwa_screen.dart';
@@ -16,6 +17,37 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
   Future<void> _bukaMaps(String url) async {
     final uri = Uri.parse(url);
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _toggleLike(BuildContext context, String idZoo,
+      List likedBy, int likesCount) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    // Belum login — tidak bisa like
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login dulu untuk menyukai destinasi!')),
+      );
+      return;
+    }
+
+    final ref = FirebaseFirestore.instance
+        .collection('destination')
+        .doc(idZoo);
+
+    if (likedBy.contains(uid)) {
+      // ✅ Sudah like — unlike
+      await ref.update({
+        'liked_by': FieldValue.arrayRemove([uid]),
+        'likes_count': FieldValue.increment(-1),
+      });
+    } else {
+      // ✅ Belum like — like
+      await ref.update({
+        'liked_by': FieldValue.arrayUnion([uid]),
+        'likes_count': FieldValue.increment(1),
+      });
+    }
   }
 
   @override
@@ -152,6 +184,57 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
+                      // ✅ LIKE BUTTON
+                      Builder(builder: (context) {
+                        final uid = FirebaseAuth.instance.currentUser?.uid;
+                        final rawData = snapshot.data!.data()
+                            as Map<String, dynamic>;
+                        final likedBy = List.from(rawData['liked_by'] ?? []);
+                        final likesCount = rawData['likes_count'] ?? 0;
+                        final isLiked = uid != null && likedBy.contains(uid);
+
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 8),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => _toggleLike(
+                                    context, zoo.id_zoo, likedBy, likesCount),
+                                child: Icon(
+                                  isLiked
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isLiked
+                                      ? Colors.red
+                                      : AppTheme.textMuted,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                '$likesCount orang menyukai destinasi ini',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 12),
+
                       // Tentang
                       _SectionCard(
                         title: 'Tentang',

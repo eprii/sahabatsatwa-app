@@ -54,13 +54,13 @@ class AuthWrapper extends StatelessWidget {
           return const LoginScreen();
         }
 
-        // ✅ User sudah login — cek role dari Firestore
+        // ✅ User sudah login — cek role dari Firestore pakai StreamBuilder
         final uid = snapshot.data!.uid;
-        return FutureBuilder<DocumentSnapshot>(
-          future: FirebaseFirestore.instance
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
               .collection('users')
               .doc(uid)
-              .get(),
+              .snapshots(),
           builder: (context, roleSnapshot) {
             if (roleSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
@@ -68,9 +68,10 @@ class AuthWrapper extends StatelessWidget {
               );
             }
 
-            // Kalau document tidak ada atau role tidak ada → anggap user biasa
             final role = roleSnapshot.data?.exists == true
-                ? (roleSnapshot.data!.data() as Map<String, dynamic>)['role'] ?? 'user'
+                ? (roleSnapshot.data!.data()
+                        as Map<String, dynamic>)['role'] ??
+                    'user'
                 : 'user';
 
             if (role == 'admin') {
