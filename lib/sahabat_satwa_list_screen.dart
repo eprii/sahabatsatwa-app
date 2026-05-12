@@ -53,16 +53,24 @@ class SahabatSatwaListScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      HugeIcon(
-                        icon: HugeIcons.strokeRoundedSettings01,
-                        color: Colors.white,
-                        size: 24,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${zoos.length} destinasi',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 13),
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                // ── GREETING CARD ──
+                // GREETING CARD 
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: Container(
@@ -92,14 +100,7 @@ class SahabatSatwaListScreen extends StatelessWidget {
                           ),
                         ),
                         SizedBox(height: 10),
-                        Text(
-                          'Jelajahi berbagai kebun binatang terbaik di Indonesia dengan koleksi satwa yang menakjubkan',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                            height: 1.5,
-                          ),
-                        ),
+                        
                       ],
                     ),
                   ),
@@ -188,51 +189,74 @@ class SahabatSatwaListScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              trailing: StreamBuilder<QuerySnapshot>(
-                                stream: FirebaseFirestore.instance
-                                    .collection('favourites')
-                                    .where('id_user',
-                                        isEqualTo: FirebaseAuth
-                                            .instance.currentUser?.uid)
-                                    .where('id_zoo', isEqualTo: zoo.id_zoo)
-                                    .snapshots(),
-                                builder: (context, favSnap) {
-                                  final isFav = favSnap.hasData &&
-                                      favSnap.data!.docs.isNotEmpty;
-                                  return GestureDetector(
-                                    onTap: () async {
-                                      final uid = FirebaseAuth
-                                          .instance.currentUser?.uid;
-                                      if (uid == null) return;
-                                      final favRef = FirebaseFirestore.instance
-                                          .collection('favourites');
-                                      final existing = await favRef
-                                          .where('id_user', isEqualTo: uid)
-                                          .where('id_zoo',
-                                              isEqualTo: zoo.id_zoo)
-                                          .get();
-                                      if (existing.docs.isNotEmpty) {
-                                        await favRef
-                                            .doc(existing.docs.first.id)
-                                            .delete();
-                                      } else {
-                                        await favRef.add({
-                                          'id_user': uid,
-                                          'id_zoo': zoo.id_zoo,
-                                          'saved_at':
-                                              DateTime.now()
-                                        });
-                                      }
+                              trailing: FutureBuilder<DocumentSnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(FirebaseAuth.instance.currentUser?.uid)
+                                    .get(),
+                                builder: (context, userSnap) {
+                                  final role = userSnap.data?.exists == true
+                                      ? (userSnap.data!.data()
+                                              as Map<String, dynamic>)['role'] ??
+                                          'user'
+                                      : 'user';
+
+                                  // Jika admin, tidak tampilkan tombol favorit
+                                  if (role == 'admin') {
+                                    return const SizedBox();
+                                  }
+
+                                  return StreamBuilder<QuerySnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('favourites')
+                                        .where('id_user',
+                                            isEqualTo: FirebaseAuth
+                                                .instance.currentUser?.uid)
+                                        .where('id_zoo', isEqualTo: zoo.id_zoo)
+                                        .snapshots(),
+                                    builder: (context, favSnap) {
+                                      final isFav = favSnap.hasData &&
+                                          favSnap.data!.docs.isNotEmpty;
+                                      return GestureDetector(
+                                        onTap: () async {
+                                          final uid = FirebaseAuth
+                                              .instance.currentUser?.uid;
+                                          if (uid == null) return;
+                                          final favRef = FirebaseFirestore
+                                              .instance
+                                              .collection('favourites');
+                                          final existing = await favRef
+                                              .where('id_user', isEqualTo: uid)
+                                              .where('id_zoo',
+                                                  isEqualTo: zoo.id_zoo)
+                                              .get();
+                                          if (existing.docs.isNotEmpty) {
+                                            await favRef
+                                                .doc(existing.docs.first.id)
+                                                .delete();
+                                          } else {
+                                            await favRef.add({
+                                              'id_user': uid,
+                                              'id_zoo': zoo.id_zoo,
+                                              'saved_at': FieldValue
+                                                  .serverTimestamp(),
+                                            });
+                                          }
+                                        },
+                                        child: HugeIcon(
+                                          icon: isFav
+                                              ? HugeIcons
+                                                  .strokeRoundedBookmarkCheck02
+                                              : HugeIcons
+                                                  .strokeRoundedBookmarkAdd01,
+                                          color: isFav
+                                              ? const Color.fromARGB(
+                                                  255, 69, 185, 15)
+                                              : AppTheme.textMuted,
+                                          size: 22,
+                                        ),
+                                      );
                                     },
-                                    child: HugeIcon(
-                                      icon: isFav
-                                          ? HugeIcons.strokeRoundedBookmarkCheck02
-                                          : HugeIcons.strokeRoundedBookmarkAdd01,
-                                      color: isFav
-                                          ? const Color.fromARGB(255, 69, 185, 15)
-                                          : AppTheme.textMuted,
-                                      size: 22,
-                                    ),
                                   );
                                 },
                               ),

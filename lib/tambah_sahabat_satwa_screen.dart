@@ -26,7 +26,44 @@ class _TambahState extends State<TambahSahabatSatwaScreen> {
   String _selectedProvinsi = '';
 
   final List<String> _provinsiList = [
-    'Jawa', 'Bali', 'Sumatra', 'Kalimantan', 'Sulawesi', 'Papua', 'NTB', 'NTT'
+    'Aceh',
+    'Sumatera Utara',
+    'Sumatera Barat',
+    'Riau',
+    'Kepulauan Riau',
+    'Jambi',
+    'Sumatera Selatan',
+    'Kepulauan Bangka Belitung',
+    'Bengkulu',
+    'Lampung',
+    'Banten',
+    'DKI Jakarta',
+    'Jawa Barat',
+    'Jawa Tengah',
+    'DI Yogyakarta',
+    'Jawa Timur',
+    'Bali',
+    'Nusa Tenggara Barat',
+    'Nusa Tenggara Timur',
+    'Kalimantan Barat',
+    'Kalimantan Tengah',
+    'Kalimantan Selatan',
+    'Kalimantan Timur',
+    'Kalimantan Utara',
+    'Sulawesi Utara',
+    'Gorontalo',
+    'Sulawesi Tengah',
+    'Sulawesi Barat',
+    'Sulawesi Selatan',
+    'Sulawesi Tenggara',
+    'Maluku',
+    'Maluku Utara',
+    'Papua',
+    'Papua Barat',
+    'Papua Barat Daya',
+    'Papua Selatan',
+    'Papua Tengah',
+    'Papua Pegunungan'
   ];
 
   bool isValidKoordinat(String value) =>

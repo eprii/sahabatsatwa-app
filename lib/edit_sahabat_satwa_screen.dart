@@ -26,7 +26,44 @@ class _EditState extends State<EditSahabatSatwaScreen> {
   late String _selectedProvinsi;
 
   final List<String> _provinsiList = [
-    'Jawa', 'Bali', 'Sumatra', 'Kalimantan', 'Sulawesi', 'Papua', 'NTB', 'NTT'
+    'Aceh',
+    'Sumatera Utara',
+    'Sumatera Barat',
+    'Riau',
+    'Kepulauan Riau',
+    'Jambi',
+    'Sumatera Selatan',
+    'Kepulauan Bangka Belitung',
+    'Bengkulu',
+    'Lampung',
+    'Banten',
+    'DKI Jakarta',
+    'Jawa Barat',
+    'Jawa Tengah',
+    'DI Yogyakarta',
+    'Jawa Timur',
+    'Bali',
+    'Nusa Tenggara Barat',
+    'Nusa Tenggara Timur',
+    'Kalimantan Barat',
+    'Kalimantan Tengah',
+    'Kalimantan Selatan',
+    'Kalimantan Timur',
+    'Kalimantan Utara',
+    'Sulawesi Utara',
+    'Gorontalo',
+    'Sulawesi Tengah',
+    'Sulawesi Barat',
+    'Sulawesi Selatan',
+    'Sulawesi Tenggara',
+    'Maluku',
+    'Maluku Utara',
+    'Papua',
+    'Papua Barat',
+    'Papua Barat Daya',
+    'Papua Selatan',
+    'Papua Tengah',
+    'Papua Pegunungan'
   ];
 
   @override
@@ -77,7 +114,7 @@ class _EditState extends State<EditSahabatSatwaScreen> {
                   if (!isValidKoordinat(v)) return 'Format salah! Contoh: -6.2,106.8';
                   return null;
                 }),
-            _buildField(deskripsiController, 'Tentang', maxLines: 4),
+            _buildField(deskripsiController, 'Tentang', maxLines: 5),
             _buildField(alamatController, 'Alamat'),
 
             _cardWrap(

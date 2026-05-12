@@ -17,7 +17,47 @@ class _SearchScreenState extends State<SearchScreen> {
   String _query = '';
   String _selectedProvinsi = 'All';
 
-  final List<String> _provinsiList = ['All', 'Jawa', 'Bali', 'Sumatra', 'Kalimantan', 'Sulawesi'];
+  final List<String> _provinsiList = [
+    'All',
+    'Aceh',
+    'Sumatera Utara',
+    'Sumatera Barat',
+    'Riau',
+    'Kepulauan Riau',
+    'Jambi',
+    'Sumatera Selatan',
+    'Kepulauan Bangka Belitung',
+    'Bengkulu',
+    'Lampung',
+    'Banten',
+    'DKI Jakarta',
+    'Jawa Barat',
+    'Jawa Tengah',
+    'DI Yogyakarta',
+    'Jawa Timur',
+    'Bali',
+    'Nusa Tenggara Barat',
+    'Nusa Tenggara Timur',
+    'Kalimantan Barat',
+    'Kalimantan Tengah',
+    'Kalimantan Selatan',
+    'Kalimantan Timur',
+    'Kalimantan Utara',
+    'Sulawesi Utara',
+    'Gorontalo',
+    'Sulawesi Tengah',
+    'Sulawesi Barat',
+    'Sulawesi Selatan',
+    'Sulawesi Tenggara',
+    'Maluku',
+    'Maluku Utara',
+    'Papua',
+    'Papua Barat',
+    'Papua Barat Daya',
+    'Papua Selatan',
+    'Papua Tengah',
+    'Papua Pegunungan'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +170,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                   if (zoos.isEmpty) {
                     return const Center(
-                      child: Text('Tidak ada hasil',
+                      child: Text('Tidak ada destinasi yang tersedia',
                           style: TextStyle(color: Colors.white70)),
                     );
                   }

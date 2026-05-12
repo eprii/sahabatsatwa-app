@@ -293,30 +293,52 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                                 ),
                               ),
 
-                              // Save (favorit) button
-                              StreamBuilder<QuerySnapshot>(
-                                stream: FirebaseFirestore.instance
-                                    .collection('favourites')
-                                    .where('id_user',
-                                        isEqualTo: FirebaseAuth
-                                            .instance.currentUser?.uid)
-                                    .where('id_zoo', isEqualTo: zoo.id_zoo)
-                                    .snapshots(),
-                                builder: (context, favSnap) {
-                                  final isFav = favSnap.hasData &&
-                                      favSnap.data!.docs.isNotEmpty;
-                                  return GestureDetector(
-                                    onTap: () =>
-                                        _toggleFavourite(context, zoo.id_zoo),
-                                    child: HugeIcon(
-                                      icon: isFav
-                                          ? HugeIcons.strokeRoundedBookmarkCheck02
-                                          : HugeIcons.strokeRoundedBookmarkAdd01,
-                                      color: isFav
-                                          ? const Color.fromARGB(255, 69, 185, 15)
-                                          : AppTheme.textMuted,
-                                      size: 26,
-                                    ),
+                              // Save (favorit) untuk user
+                              FutureBuilder<DocumentSnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(FirebaseAuth.instance.currentUser?.uid)
+                                    .get(),
+                                builder: (context, userSnap) {
+                                  final role = userSnap.data?.exists == true
+                                      ? (userSnap.data!.data()
+                                              as Map<String, dynamic>)['role'] ??
+                                          'user'
+                                      : 'user';
+
+                                  // Jika admin, jangan tampilkan tombol favorit
+                                  if (role == 'admin') {
+                                    return const SizedBox();
+                                  }
+
+                                  return StreamBuilder<QuerySnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('favourites')
+                                        .where('id_user',
+                                            isEqualTo: FirebaseAuth
+                                                .instance.currentUser?.uid)
+                                        .where('id_zoo', isEqualTo: zoo.id_zoo)
+                                        .snapshots(),
+                                    builder: (context, favSnap) {
+                                      final isFav = favSnap.hasData &&
+                                          favSnap.data!.docs.isNotEmpty;
+                                      return GestureDetector(
+                                        onTap: () => _toggleFavourite(
+                                            context, zoo.id_zoo),
+                                        child: HugeIcon(
+                                          icon: isFav
+                                              ? HugeIcons
+                                                  .strokeRoundedBookmarkCheck02
+                                              : HugeIcons
+                                                  .strokeRoundedBookmarkAdd01,
+                                          color: isFav
+                                              ? const Color.fromARGB(
+                                                  255, 69, 185, 15)
+                                              : AppTheme.textMuted,
+                                          size: 26,
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               ),

@@ -63,7 +63,7 @@ class FavouritesScreen extends StatelessWidget {
                                         fontSize: 16)),
                                 SizedBox(height: 4),
                                 Text(
-                                    'Simpan destinasi favoritmu\ndari halaman detail!',
+                                    'Simpan destinasi favoritmu',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         color: Colors.white38,

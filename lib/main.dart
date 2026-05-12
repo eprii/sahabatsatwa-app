@@ -54,7 +54,7 @@ class AuthWrapper extends StatelessWidget {
           return const LoginScreen();
         }
 
-        // ✅ User sudah login — cek role dari Firestore pakai StreamBuilder
+        //  User sudah login — cek role dari Firestore pakai StreamBuilder
         final uid = snapshot.data!.uid;
         return StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance
