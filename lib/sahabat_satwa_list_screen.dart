@@ -226,10 +226,10 @@ class SahabatSatwaListScreen extends StatelessWidget {
                                     },
                                     child: HugeIcon(
                                       icon: isFav
-                                          ? HugeIcons.strokeRoundedBookmark02
-                                          : HugeIcons.strokeRoundedBookmark01,
+                                          ? HugeIcons.strokeRoundedBookmarkCheck02
+                                          : HugeIcons.strokeRoundedBookmarkAdd01,
                                       color: isFav
-                                          ? AppTheme.primary
+                                          ? const Color.fromARGB(255, 69, 185, 15)
                                           : AppTheme.textMuted,
                                       size: 22,
                                     ),

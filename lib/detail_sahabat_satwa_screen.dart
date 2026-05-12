@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:share_plus/share_plus.dart';
 import 'sahabat_satwa_model.dart';
 import 'edit_sahabat_satwa_screen.dart';
 import 'app_theme.dart';
@@ -80,18 +79,16 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
         .doc(idZoo);
 
     if (likedBy.contains(uid)) {
-      // Sudah like — unlike
+      // ✅ Sudah like — unlike
       await ref.update({
         'liked_by': FieldValue.arrayRemove([uid]),
         'likes_count': FieldValue.increment(-1),
-        'created_at' : DateTime.now(),
       });
     } else {
-      //  Belum like — like
+      // ✅ Belum like — like
       await ref.update({
         'liked_by': FieldValue.arrayUnion([uid]),
         'likes_count': FieldValue.increment(1),
-        'created_at' : DateTime.now(),
       });
     }
   }
@@ -135,23 +132,40 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                   ),
                 ),
                 actions: [
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: CircleAvatar(
-                      backgroundColor: Colors.black38,
-                      child: IconButton(
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedPencilEdit01,
-                          color: Colors.white,
-                          size: 18,
+                  FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(FirebaseAuth.instance.currentUser?.uid)
+                        .get(),
+                    builder: (context, userSnap) {
+                      final role = userSnap.data?.exists == true
+                          ? (userSnap.data!.data()
+                                  as Map<String, dynamic>)['role'] ??
+                              'user'
+                          : 'user';
+
+                      if (role != 'admin') return const SizedBox();
+
+                      return Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: CircleAvatar(
+                          backgroundColor: Colors.black38,
+                          child: IconButton(
+                            icon: HugeIcon(
+                              icon: HugeIcons.strokeRoundedPencilEdit01,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      EditSahabatSatwaScreen(data: zoo)),
+                            ),
+                          ),
                         ),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => EditSahabatSatwaScreen(data: zoo)),
-                        ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -230,7 +244,7 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      // LIKE + SAVE + SHARE BAR
+                      // ✅ LIKE + SAVE + SHARE BAR
                       Builder(builder: (context) {
                         final uid = FirebaseAuth.instance.currentUser?.uid;
                         final rawData = snapshot.data!.data()
@@ -296,10 +310,10 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                                         _toggleFavourite(context, zoo.id_zoo),
                                     child: HugeIcon(
                                       icon: isFav
-                                          ? HugeIcons.strokeRoundedBookmark02
-                                          : HugeIcons.strokeRoundedBookmark01,
+                                          ? HugeIcons.strokeRoundedBookmarkCheck02
+                                          : HugeIcons.strokeRoundedBookmarkAdd01,
                                       color: isFav
-                                          ? AppTheme.primary
+                                          ? const Color.fromARGB(255, 69, 185, 15)
                                           : AppTheme.textMuted,
                                       size: 26,
                                     ),
@@ -309,7 +323,7 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                               const SizedBox(width: 16),
 
                               // Share button
-
+                              //no
                             ],
                           ),
                         );
@@ -361,7 +375,7 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
 
-                            // Link Google Maps, tap to copy
+                            // Link Google Maps — tap to copy
                             if (zoo.link_gmaps.isNotEmpty)
                               GestureDetector(
                                 onTap: () async {
