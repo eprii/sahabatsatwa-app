@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'sahabat_satwa_model.dart';
 import 'detail_sahabat_satwa_screen.dart';
@@ -90,7 +91,15 @@ class SahabatSatwaListScreen extends StatelessWidget {
                             height: 1.3,
                           ),
                         ),
-                        
+                        SizedBox(height: 10),
+                        Text(
+                          'Jelajahi berbagai kebun binatang terbaik di Indonesia dengan koleksi satwa yang menakjubkan',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            height: 1.5,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -120,7 +129,7 @@ class SahabatSatwaListScreen extends StatelessWidget {
                                   child: zoo.foto_url.isNotEmpty
                                       ? Image.network(
                                           zoo.foto_url,
-                                          height: 120,
+                                          height: 160,
                                           width: double.infinity,
                                           fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => _placeholder(),
@@ -179,10 +188,53 @@ class SahabatSatwaListScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              trailing: HugeIcon(
-                                icon: HugeIcons.strokeRoundedArrowRight01,
-                                color: AppTheme.textMuted,
-                                size: 20,
+                              trailing: StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('favourites')
+                                    .where('id_user',
+                                        isEqualTo: FirebaseAuth
+                                            .instance.currentUser?.uid)
+                                    .where('id_zoo', isEqualTo: zoo.id_zoo)
+                                    .snapshots(),
+                                builder: (context, favSnap) {
+                                  final isFav = favSnap.hasData &&
+                                      favSnap.data!.docs.isNotEmpty;
+                                  return GestureDetector(
+                                    onTap: () async {
+                                      final uid = FirebaseAuth
+                                          .instance.currentUser?.uid;
+                                      if (uid == null) return;
+                                      final favRef = FirebaseFirestore.instance
+                                          .collection('favourites');
+                                      final existing = await favRef
+                                          .where('id_user', isEqualTo: uid)
+                                          .where('id_zoo',
+                                              isEqualTo: zoo.id_zoo)
+                                          .get();
+                                      if (existing.docs.isNotEmpty) {
+                                        await favRef
+                                            .doc(existing.docs.first.id)
+                                            .delete();
+                                      } else {
+                                        await favRef.add({
+                                          'id_user': uid,
+                                          'id_zoo': zoo.id_zoo,
+                                          'saved_at':
+                                              FieldValue.serverTimestamp(),
+                                        });
+                                      }
+                                    },
+                                    child: HugeIcon(
+                                      icon: isFav
+                                          ? HugeIcons.strokeRoundedBookmark02
+                                          : HugeIcons.strokeRoundedBookmark01,
+                                      color: isFav
+                                          ? AppTheme.primary
+                                          : AppTheme.textMuted,
+                                      size: 22,
+                                    ),
+                                  );
+                                },
                               ),
                               onTap: () => Navigator.push(
                                 context,

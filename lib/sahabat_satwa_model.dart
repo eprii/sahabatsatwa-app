@@ -13,8 +13,8 @@ class SahabatSatwa {
   String kontak;
   String koordinat;
   String link_gmaps;
-  String foto_url;   // 🆕 foto thumbnail
-  String provinsi;   // 🆕 provinsi (Jawa, Bali, Sumatra, dll)
+  String foto_url;   
+  String provinsi;   
 
   SahabatSatwa({
     required this.id_zoo,

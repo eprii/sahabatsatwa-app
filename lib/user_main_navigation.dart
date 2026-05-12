@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'app_theme.dart';
 import 'sahabat_satwa_list_screen.dart';
 import 'search_screen.dart';
+import 'favourites_screen.dart';
 import 'profile_screen.dart';
 
 class UserNavigation extends StatefulWidget {
@@ -18,6 +19,7 @@ class _UserNavigationState extends State<UserNavigation> {
   final List<Widget> _pages = const [
     SahabatSatwaListScreen(),
     SearchScreen(),
+    FavouritesScreen(),
     ProfileScreen(),
   ];
 
@@ -65,6 +67,17 @@ class _UserNavigationState extends State<UserNavigation> {
                   color: AppTheme.primary,
                   size: 24),
               label: 'Search',
+            ),
+            BottomNavigationBarItem(
+              icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedBookmark01,
+                  color: Colors.grey,
+                  size: 24),
+              activeIcon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedBookmark02,
+                  color: AppTheme.primary,
+                  size: 24),
+              label: 'Favorit',
             ),
             BottomNavigationBarItem(
               icon: HugeIcon(

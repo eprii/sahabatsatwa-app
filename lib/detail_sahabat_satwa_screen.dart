@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:share_plus/share_plus.dart';
 import 'sahabat_satwa_model.dart';
 import 'edit_sahabat_satwa_screen.dart';
 import 'app_theme.dart';
@@ -17,6 +18,49 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
   Future<void> _bukaMaps(String url) async {
     final uri = Uri.parse(url);
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _toggleFavourite(BuildContext context, String idZoo) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login dulu untuk menyimpan favorit!')),
+      );
+      return;
+    }
+
+    final favRef = FirebaseFirestore.instance.collection('favourites');
+
+    // Cek apakah sudah difavoritkan
+    final existing = await favRef
+        .where('id_user', isEqualTo: uid)
+        .where('id_zoo', isEqualTo: idZoo)
+        .get();
+
+    if (existing.docs.isNotEmpty) {
+      // Sudah favorit → hapus
+      await favRef.doc(existing.docs.first.id).delete();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Dihapus dari favorit')),
+        );
+      }
+    } else {
+      // Belum favorit → tambah
+      await favRef.add({
+        'id_user': uid,
+        'id_zoo': idZoo,
+        'saved_at': FieldValue.serverTimestamp(),
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ditambahkan ke favorit!'),
+            backgroundColor: AppTheme.primary,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _toggleLike(BuildContext context, String idZoo,
@@ -184,7 +228,7 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      // ✅ LIKE BUTTON
+                      // LIKE + SAVE + SHARE BAR
                       Builder(builder: (context) {
                         final uid = FirebaseAuth.instance.currentUser?.uid;
                         final rawData = snapshot.data!.data()
@@ -208,6 +252,7 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
+                              // Like button
                               GestureDetector(
                                 onTap: () => _toggleLike(
                                     context, zoo.id_zoo, likedBy, likesCount),
@@ -218,17 +263,51 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                                   color: isLiked
                                       ? Colors.red
                                       : AppTheme.textMuted,
-                                  size: 28,
+                                  size: 26,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Text(
-                                '$likesCount orang menyukai destinasi ini',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.textMuted,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '$likesCount orang menyukai destinasi ini',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppTheme.textMuted,
+                                  ),
                                 ),
                               ),
+
+                              // Save (favorit) button
+                              StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('favourites')
+                                    .where('id_user',
+                                        isEqualTo: FirebaseAuth
+                                            .instance.currentUser?.uid)
+                                    .where('id_zoo', isEqualTo: zoo.id_zoo)
+                                    .snapshots(),
+                                builder: (context, favSnap) {
+                                  final isFav = favSnap.hasData &&
+                                      favSnap.data!.docs.isNotEmpty;
+                                  return GestureDetector(
+                                    onTap: () =>
+                                        _toggleFavourite(context, zoo.id_zoo),
+                                    child: HugeIcon(
+                                      icon: isFav
+                                          ? HugeIcons.strokeRoundedBookmark02
+                                          : HugeIcons.strokeRoundedBookmark01,
+                                      color: isFav
+                                          ? AppTheme.primary
+                                          : AppTheme.textMuted,
+                                      size: 26,
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 16),
+
+                              // Share button
+
                             ],
                           ),
                         );
