@@ -50,20 +50,21 @@ class SahabatSatwa {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'nama_zoo': nama_zoo,
-      'deskripsi': deskripsi,
-      'alamat': alamat,
-      'harga_tiket': harga_tiket,
-      'jam_buka': jam_buka,
-      'jam_tutup': jam_tutup,
-      'kontak': kontak,
-      'koordinat': koordinat,
-      'link_gmaps': link_gmaps,
-      'foto_url': foto_url,
-      'provinsi': provinsi,
-    };
-  }
+  return {
+    'nama_zoo': nama_zoo,
+    'deskripsi': deskripsi,
+    'alamat': alamat,
+    'harga_tiket': harga_tiket,
+    'jam_buka': jam_buka,
+    'jam_tutup': jam_tutup,
+    'kontak': kontak,
+    'koordinat': koordinat,
+    'link_gmaps': link_gmaps,
+    'foto_url': foto_url,
+    'provinsi': provinsi,
+    'created_at' : DateTime.now(),
+  };
+}
 
   List<double>? get parsedKoordinat {
     try {

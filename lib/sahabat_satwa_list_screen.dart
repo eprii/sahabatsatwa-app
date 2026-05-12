@@ -220,7 +220,7 @@ class SahabatSatwaListScreen extends StatelessWidget {
                                           'id_user': uid,
                                           'id_zoo': zoo.id_zoo,
                                           'saved_at':
-                                              FieldValue.serverTimestamp(),
+                                              DateTime.now()
                                         });
                                       }
                                     },

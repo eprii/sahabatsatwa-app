@@ -80,16 +80,18 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
         .doc(idZoo);
 
     if (likedBy.contains(uid)) {
-      // ✅ Sudah like — unlike
+      // Sudah like — unlike
       await ref.update({
         'liked_by': FieldValue.arrayRemove([uid]),
         'likes_count': FieldValue.increment(-1),
+        'created_at' : DateTime.now(),
       });
     } else {
-      // ✅ Belum like — like
+      //  Belum like — like
       await ref.update({
         'liked_by': FieldValue.arrayUnion([uid]),
         'likes_count': FieldValue.increment(1),
+        'created_at' : DateTime.now(),
       });
     }
   }
@@ -359,7 +361,7 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
 
-                            // Link Google Maps — tap to copy
+                            // Link Google Maps, tap to copy
                             if (zoo.link_gmaps.isNotEmpty)
                               GestureDetector(
                                 onTap: () async {
