@@ -20,6 +20,7 @@ dependencies:
   firebase_auth: ^5.0.0
   cloud_firestore: ^5.0.0
   share_plus: ^10.0.0
+  flutter_arc_text: ^0.6.0
 
 
 dev_dependencies:
@@ -56,3 +57,6 @@ flutter:
     - assets/icon/sahabatsatwa_app_logo4.png
     - assets/icon/sahabatsatwa_logo.png
     - assets/icon/sahabatsatwa_logo_native_splash.png
+    - assets/img/login_bg.jpg
+    - assets/img/fix_login_bg.jpg
+    - assets/data/data_destinasi.json

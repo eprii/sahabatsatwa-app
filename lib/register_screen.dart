@@ -53,11 +53,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'no_telepon': _noTeleponController.text.trim(),
         'email': _emailController.text.trim(),
         'alamat': _alamatController.text.trim(),
-        'role': 'user', // ✅ semua akun baru otomatis jadi user
+        'role': 'user', 
         'created_at': FieldValue.serverTimestamp(),
       });
 
-      // 3. Logout dulu — user harus login manual
+      // 3. User harus login manual
       await FirebaseAuth.instance.signOut();
 
       if (mounted) {
@@ -125,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             TextFormField(
               controller: _namaBelakangController,
               decoration: const InputDecoration(
-                labelText: 'Nama Belakang',
+                labelText: 'Nama Belakang (opsional)',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -137,7 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               decoration: const InputDecoration(
                 labelText: 'Username',
                 border: OutlineInputBorder(),
-                hintText: 'contoh: sahabat_satwa',
+                hintText: 'cth: johndoe123',
               ),
               validator: (v) =>
                   v == null || v.isEmpty ? 'Username tidak boleh kosong' : null,
