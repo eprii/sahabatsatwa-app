@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'sahabat_satwa_model.dart';
 import 'detail_sahabat_satwa_screen.dart';
 import 'tambah_sahabat_satwa_screen.dart';
+import 'edit_sahabat_satwa_screen.dart';
 import 'app_theme.dart';
 
 class AdminListScreen extends StatelessWidget {
@@ -112,7 +113,6 @@ class AdminListScreen extends StatelessWidget {
     );
   }
 }
-
 class _AdminCard extends StatelessWidget {
   final SahabatSatwa zoo;
   const _AdminCard({required this.zoo});
@@ -207,7 +207,7 @@ class _AdminCard extends StatelessWidget {
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => DetailSahabatSatwaScreen(data: zoo)),
+                            builder: (_) => EditSahabatSatwaScreen(data: zoo)),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppTheme.primary),

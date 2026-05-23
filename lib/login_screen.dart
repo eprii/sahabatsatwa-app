@@ -109,6 +109,7 @@ class _LoginScreenState extends State<LoginScreen>
             ScrollViewKeyboardDismissBehavior.manual,
 
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
 
               /// =========================
@@ -212,12 +213,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                   child: Padding(
 
-                    padding: EdgeInsets.fromLTRB(
-                      24,
-                      0,
-                      24,
-                      MediaQuery.of(context).viewInsets.bottom + 16,
-                    ),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
 
                     child: Form(
                       key: _formKey,

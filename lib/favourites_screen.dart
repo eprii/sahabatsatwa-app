@@ -14,22 +14,21 @@ class FavouritesScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        title: const Text(
+                'Favoritku',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
-              child: Text(
-                'Favoritmu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
             Expanded(
               child: uid == null
                   ? const Center(
