@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'app_theme.dart';
 import 'all_reviews_screen.dart';
+import 'app_notification.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-// ══════════════════════════════════════════════════════════════════════════════
-// RATING SECTION
 // Widget ini menampilkan bintang rata-rata dan memungkinkan user memberi rating.
-//
 // Cara kerja penyimpanan rating:
 // Dokumen zoo_rating menyimpan field "ratings_map" berupa Map,
 // contoh: { "uid_userA": 4, "uid_userB": 5, "uid_userC": 3 }
 // Rata-rata dihitung langsung dari semua nilai di dalam Map tersebut.
-// ══════════════════════════════════════════════════════════════════════════════
 
 class RatingSection extends StatefulWidget {
   final String idZoo;
@@ -74,8 +72,9 @@ Future<void> _kirimRating(int bintang) async {
 
   // Jika belum login, tampilkan pesan dan hentikan fungsi
   if (uid == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login dulu untuk memberi rating!')),
+    AppNotification.showInfo(
+      context,
+      'Login dulu untuk memberi rating!',
     );
     return;
   }
@@ -357,69 +356,98 @@ class _ReviewSectionState extends State<ReviewSection> {
     super.dispose();
   }
 
-  // ── Fungsi: kirim review ke Firestore ───────────────────────────────────────
+  // Fungsi: kirim review ke Firestore
   Future<void> _kirimReview() async {
+    // Mengambil UID user yang sedang login.
+    final uid = FirebaseAuth.instance.currentUser?.uid;
 
-    final uid  = FirebaseAuth.instance.currentUser?.uid;
-    final teks = _reviewCtrl.text.trim(); // hapus spasi di awal dan akhir
+    // Mengambil isi input review dan menghapus spasi awal/akhir.
+    final teks = _reviewCtrl.text.trim();
 
-    // Cek apakah user sudah login
+    // Jika user belum login, review tidak boleh dikirim.
     if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login dulu untuk mengirim review!')),
+      AppNotification.showInfo(
+        context,
+        'Login dulu untuk mengirim review!',
       );
       return;
     }
 
-    // Cek apakah field review tidak kosong
+    // Jika input review kosong, tampilkan notifikasi error.
     if (teks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Review tidak boleh kosong!')),
+      AppNotification.showError(
+        context,
+        'Review tidak boleh kosong!',
       );
       return;
     }
 
-    // Mulai proses loading
+    // Mulai loading saat proses kirim review berjalan.
     setState(() {
       _isSubmitting = true;
     });
 
-    // Ambil data user dari Firestore untuk mendapatkan nama dan username
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get();
+    try {
+      // Mengambil data user dari collection users.
+      // Data ini dipakai untuk menyimpan nama reviewer dan username.
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
 
-  
-    final userData     = userDoc.data() as Map<String, dynamic>;
-    final namaReviewer = userData['nama_depan'] ?? 'Pengguna'; // ambil nama depan
-    final username     = userData['username']   ?? '';
+      // Jika data user tidak ditemukan, proses dihentikan.
+      if (!userDoc.exists) {
+        if (mounted) {
+          AppNotification.showError(
+            context,
+            'Data user tidak ditemukan.',
+          );
+        }
+        return;
+      }
 
-    // Simpan review ke Firestore collection zoo_review
-    await FirebaseFirestore.instance.collection('zoo_review').add({
-      'id_zoo':        widget.idZoo,
-      'id_user':       uid,
-      'nama_reviewer': namaReviewer,
-      'username':      username,
-      'komentar':      teks,
-      'tanggal_review': FieldValue.serverTimestamp(), // waktu server otomatis
-    });
+      // Mengubah data user dari Firestore menjadi Map.
+      final userData = userDoc.data() as Map<String, dynamic>;
 
-    // Kosongkan field setelah berhasil kirim
-    _reviewCtrl.clear();
+      // Mengambil nama depan dan username user.
+      final namaReviewer = userData['nama_depan'] ?? 'Pengguna';
+      final username = userData['username'] ?? '';
 
-    // Selesai loading
-    setState(() {
-      _isSubmitting = false;
-    });
+      // Menyimpan review ke collection zoo_review.
+      await FirebaseFirestore.instance.collection('zoo_review').add({
+        'id_zoo': widget.idZoo,
+        'id_user': uid,
+        'nama_reviewer': namaReviewer,
+        'username': username,
+        'komentar': teks,
+        'tanggal_review': FieldValue.serverTimestamp(),
+      });
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Review berhasil dikirim!'),
-          backgroundColor: AppTheme.primary,
-        ),
-      );
+      // Mengosongkan input setelah review berhasil dikirim.
+      _reviewCtrl.clear();
+
+      // Menampilkan notifikasi sukses.
+      if (mounted) {
+        AppNotification.showSuccess(
+          context,
+          'Review berhasil dikirim!',
+        );
+      }
+    } catch (e) {
+      // Jika proses kirim review gagal, tampilkan notifikasi error.
+      if (mounted) {
+        AppNotification.showError(
+          context,
+          'Gagal mengirim review.',
+        );
+      }
+    } finally {
+      // Loading dimatikan kembali setelah proses selesai.
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
@@ -719,61 +747,186 @@ Align(
 // Dibuat public supaya bisa dipakai di AllReviewsScreen juga.
 // ══════════════════════════════════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════════════════════════════════
+// REVIEW CARD
+// Widget untuk menampilkan satu review.
+// Menampilkan nama, username, tanggal, rating user, komentar,
+// dan tombol hapus jika review tersebut milik user yang sedang login.
+// ══════════════════════════════════════════════════════════════════════════════
+
 class ReviewCard extends StatelessWidget {
-  final QueryDocumentSnapshot doc; // dokumen review dari Firestore
+  final QueryDocumentSnapshot doc; // Dokumen review dari Firestore
+
+  // ratingsMap berisi data rating dari collection zoo_rating.
+  // Bentuknya: { uidUser: jumlahRating }
   final Map<String, dynamic> ratingsMap;
+
+  // showActions digunakan untuk menentukan apakah tombol titik tiga ditampilkan.
+  // Di halaman all_reviews_screen.dart nanti dibuat true.
+  // Di preview review halaman detail bisa tetap false.
+  final bool showActions;
 
   const ReviewCard({
     super.key,
     required this.doc,
     this.ratingsMap = const {},
+    this.showActions = false,
   });
 
-  // ── Helper: format Timestamp menjadi teks tanggal ──────────────────────────
+  // Helper untuk format Timestamp menjadi teks tanggal.
   String _formatTanggal(Timestamp? timestamp) {
-    if (timestamp == null) return '';
+    if (timestamp == null) {
+      return '';
+    }
 
-    final dt = timestamp.toDate(); // ubah Timestamp ke DateTime
+    // Mengubah Timestamp Firestore menjadi DateTime Dart.
+    final dt = timestamp.toDate();
 
-    // Daftar nama bulan dalam bahasa Indonesia
+    // Nama bulan dalam Bahasa Indonesia.
     final bulan = [
-      '',          // index 0 kosong karena bulan mulai dari 1
-      'Januari', 'Februari', 'Maret',     'April',
-      'Mei',      'Juni',     'Juli',      'Agustus',
-      'September','Oktober',  'November',  'Desember',
+      '',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
 
-    // Format jam dan menit dengan dua digit, contoh: 08:05
-    final jam   = dt.hour.toString().padLeft(2, '0');
+    // Membuat format jam dua digit.
+    final jam = dt.hour.toString().padLeft(2, '0');
+
+    // Membuat format menit dua digit.
     final menit = dt.minute.toString().padLeft(2, '0');
 
-    // Gabungkan menjadi: "13:38, 23 Mei 2026"
+    // Contoh hasil: 13:38, 23 Mei 2026
     return '$jam:$menit, ${dt.day} ${bulan[dt.month]} ${dt.year}';
+  }
+
+  // Fungsi untuk menampilkan dialog konfirmasi sebelum menghapus review.
+  Future<bool> _konfirmasiHapus(BuildContext context) async {
+    final hasil = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Hapus Review'),
+          content: const Text(
+            'Yakin ingin menghapus review ini?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text(
+                'Hapus',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Jika hasil null, anggap user tidak jadi menghapus.
+    return hasil ?? false;
+  }
+
+  // Fungsi untuk menghapus review dari Firestore.
+  Future<void> _hapusReview(BuildContext context) async {
+    // Ambil data review dari dokumen Firestore.
+    final data = doc.data() as Map<String, dynamic>;
+
+    // Ambil uid user yang sedang login.
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    // Ambil id_user dari review.
+    final idUserReview = (data['id_user'] ?? '').toString();
+
+    // Cek apakah user yang login adalah pemilik review.
+    if (uid == null || uid != idUserReview) {
+      AppNotification.showError(
+        context,
+        'Kamu hanya bisa menghapus review milikmu sendiri.',
+      );
+      return;
+    }
+
+    // Tampilkan dialog konfirmasi sebelum benar-benar menghapus.
+    final bolehHapus = await _konfirmasiHapus(context);
+
+    if (!bolehHapus) {
+      return;
+    }
+
+    try {
+      // Menghapus dokumen review dari collection zoo_review.
+      await FirebaseFirestore.instance
+          .collection('zoo_review')
+          .doc(doc.id)
+          .delete();
+
+      if (context.mounted) {
+        AppNotification.showSuccess(
+          context,
+          'Review berhasil dihapus.',
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AppNotification.showError(
+          context,
+          'Gagal menghapus review.',
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Mengambil data dari dokumen review.
+    final data = doc.data() as Map<String, dynamic>;
 
-    // Ambil data dari dokumen Firestore sebagai Map
-    final data     = doc.data() as Map<String, dynamic>;
-    final nama     = data['nama_reviewer'] ?? 'Pengguna';
+    final nama = data['nama_reviewer'] ?? 'Pengguna';
     final username = data['username'] ?? '';
     final komentar = data['komentar'] ?? '';
-    final tanggal  = _formatTanggal(data['tanggal_review'] as Timestamp?);
+    final tanggal = _formatTanggal(data['tanggal_review'] as Timestamp?);
 
-    final idUser = data['id_user'] ?? '';
+    // id_user digunakan untuk mencocokkan review dengan rating user.
+    final idUserReview = (data['id_user'] ?? '').toString();
 
+    // uid user yang sedang login.
+    final uidLogin = FirebaseAuth.instance.currentUser?.uid;
+
+    // User hanya boleh menghapus review miliknya sendiri.
+    final bool bolehTampilkanAksi =
+        showActions && uidLogin != null && uidLogin == idUserReview;
+
+    // Mengambil rating reviewer dari ratingsMap.
     int ratingReviewer = 0;
 
-    if (idUser.toString().isNotEmpty && ratingsMap.containsKey(idUser)) {
-      ratingReviewer = (ratingsMap[idUser] as num).toInt();
+    if (idUserReview.isNotEmpty && ratingsMap.containsKey(idUserReview)) {
+      ratingReviewer = (ratingsMap[idUserReview] as num).toInt();
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        // ── Nama + @username
+        // Baris atas: nama + username di kiri, titik tiga di kanan.
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -784,15 +937,14 @@ class ReviewCard extends StatelessWidget {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: nama,
+                      text: nama.toString(),
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.textDark,
                       ),
                     ),
-
-                    if (username.isNotEmpty)
+                    if (username.toString().isNotEmpty)
                       TextSpan(
                         text: ' @$username',
                         style: const TextStyle(
@@ -805,15 +957,40 @@ class ReviewCard extends StatelessWidget {
               ),
             ),
 
-            if (ratingReviewer > 0)
-              _ReviewRatingBadge(rating: ratingReviewer),
+            if (bolehTampilkanAksi)
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  tooltip: 'Opsi review',
+                  offset: const Offset(0, 24),
+                  child: const Icon(
+                    Icons.more_vert,
+                    size: 18,
+                    color: AppTheme.textMuted,
+                  ),
+                  onSelected: (value) {
+                    if (value == 'hapus') {
+                      _hapusReview(context);
+                    }
+                  },
+                  itemBuilder: (context) {
+                    return [
+                      const PopupMenuItem<String>(
+                        value: 'hapus',
+                        child: Text('Hapus review'),
+                      ),
+                    ];
+                  },
+                ),
+              ),
           ],
         ),
 
         const SizedBox(height: 2),
 
-        // Tanggal review 
-
+        // Tanggal review.
         Text(
           tanggal,
           style: const TextStyle(
@@ -822,28 +999,34 @@ class ReviewCard extends StatelessWidget {
           ),
         ),
 
+        // Rating user dalam bentuk 5 bintang.
+        if (ratingReviewer > 0) ...[
+          const SizedBox(height: 4),
+          _ReviewStars(rating: ratingReviewer),
+        ],
+
         const SizedBox(height: 6),
 
-        // ── Komentar ────────────────────────────────────────────────────────
-
+        // Isi komentar.
         Text(
-          komentar,
+          komentar.toString(),
           style: const TextStyle(
             fontSize: 13,
             color: AppTheme.textDark,
-            height: 1.5, // jarak antar baris
+            height: 1.5,
           ),
         ),
-
       ],
     );
   }
 }
 
-class _ReviewRatingBadge extends StatelessWidget {
+// Widget untuk menampilkan rating review dalam bentuk 5 bintang.
+// Jika rating = 3, maka 3 bintang terisi dan 2 bintang kosong.
+class _ReviewStars extends StatelessWidget {
   final int rating;
 
-  const _ReviewRatingBadge({
+  const _ReviewStars({
     required this.rating,
   });
 
@@ -851,22 +1034,17 @@ class _ReviewRatingBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(
-          Icons.star,
-          size: 15,
+
+      // List.generate membuat 5 icon bintang.
+      children: List.generate(5, (index) {
+        bool terisi = index < rating;
+
+        return Icon(
+          terisi ? Icons.star : Icons.star_border,
+          size: 14,
           color: Colors.amber,
-        ),
-        const SizedBox(width: 3),
-        Text(
-          rating.toString(),
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textDark,
-          ),
-        ),
-      ],
+        );
+      }),
     );
   }
 }
@@ -950,8 +1128,10 @@ class _BintangRatingInteraktifState extends State<BintangRatingInteraktif> {
                 sedangKirim = false;
               });
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Gagal mengirim rating')),
+              AppNotification.showError(
+                // ignore: use_build_context_synchronously
+                context,
+                'Gagal mengirim rating',
               );
             }
           },

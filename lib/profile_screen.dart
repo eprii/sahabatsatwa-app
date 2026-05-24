@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import 'login_screen.dart';
 import 'app_theme.dart';
+import 'app_notification.dart';
 
 // Halaman profil digunakan untuk menampilkan data akun user/admin.
 // Data profil diambil dari Firebase Auth dan Firestore collection "users".
@@ -22,11 +23,16 @@ class ProfileScreen extends StatelessWidget {
     // Menghapus sesi login user dari Firebase.
     await FirebaseAuth.instance.signOut();
 
-    // context.mounted digunakan untuk memastikan halaman masih aktif
-    // sebelum melakukan navigation.
     if (context.mounted) {
-      // pushAndRemoveUntil digunakan agar setelah logout,
-      // user tidak bisa kembali ke halaman sebelumnya dengan tombol back.
+      // Tampilkan notifikasi berhasil logout.
+      // Karena AppNotification memakai rootOverlay,
+      // popup tetap muncul walaupun halaman langsung pindah ke LoginScreen.
+      AppNotification.showSuccess(
+        context,
+        'Logout berhasil',
+      );
+
+      // Setelah logout, pindah ke halaman login dan hapus semua halaman sebelumnya.
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) {
@@ -259,6 +265,7 @@ class ProfileScreen extends StatelessWidget {
           'Logout',
           style: TextStyle(
             fontWeight: FontWeight.normal,
+            fontSize: 16,
           ),
         ),
       ),

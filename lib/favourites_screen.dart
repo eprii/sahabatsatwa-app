@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'sahabat_satwa_model.dart';
 import 'detail_sahabat_satwa_screen.dart';
 import 'app_theme.dart';
+import 'app_notification.dart';
 
 // Halaman ini menampilkan daftar destinasi yang sudah difavoritkan oleh user.
 // Data favorit diambil dari collection "favourites".
@@ -217,17 +218,25 @@ class _FavouriteCard extends StatelessWidget {
 
   // Fungsi untuk menghapus destinasi dari collection favourites.
   Future<void> _removeFavourite(BuildContext context) async {
-    await FirebaseFirestore.instance
-        .collection('favourites')
-        .doc(idFavourit)
-        .delete();
+    try {
+      await FirebaseFirestore.instance
+          .collection('favourites')
+          .doc(idFavourit)
+          .delete();
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dihapus dari favorit'),
-        ),
-      );
+      if (context.mounted) {
+        AppNotification.showSuccess(
+          context,
+          'Dihapus dari favorit',
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AppNotification.showError(
+          context,
+          'Gagal menghapus favorit',
+        );
+      }
     }
   }
 

@@ -10,6 +10,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'sahabat_satwa_model.dart';
 import 'edit_sahabat_satwa_screen.dart';
 import 'app_theme.dart';
+import 'app_notification.dart';
 import 'rating_review_section.dart'; // Berisi RatingSection dan ReviewSection
 
 // Halaman detail destinasi.
@@ -83,8 +84,9 @@ class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
 
     // Jika belum login, user tidak boleh menyimpan favorit.
     if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login dulu untuk menyimpan favorit!')),
+      AppNotification.showInfo(
+        context,
+        'Login dulu untuk menyimpan favorit!',
       );
       return;
     }
@@ -102,8 +104,9 @@ class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
       await favRef.doc(existing.docs.first.id).delete();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dihapus dari favorit')),
+        AppNotification.showSuccess(
+          context,
+          'Dihapus dari favorit',
         );
       }
     } else {
@@ -115,11 +118,9 @@ class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
       });
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ditambahkan ke favorit!'),
-            backgroundColor: AppTheme.primary,
-          ),
+        AppNotification.showSuccess(
+          context,
+          'Ditambahkan ke favorit!',
         );
       }
     }
@@ -135,8 +136,9 @@ class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
 
     // Jika belum login, user tidak boleh like.
     if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login dulu untuk menyukai destinasi!')),
+      AppNotification.showInfo(
+        context,
+        'Login dulu untuk menyukai destinasi!',
       );
       return;
     }
@@ -161,8 +163,56 @@ class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
   }
 
   // Fungsi untuk menyalin alamat ke clipboard.
+// Fungsi untuk menyalin alamat ke clipboard.
+Future<void> _salinAlamat(BuildContext context, String alamat) async {
+  // Jika alamat kosong, tidak perlu disalin.
+  if (alamat.isEmpty) {
+    AppNotification.showInfo(
+      context,
+      'Alamat tidak tersedia.',
+    );
+    return;
+  }
 
-  // Fungsi untuk menyalin link Google Maps ke clipboard.
+  // Clipboard.setData digunakan untuk menyalin teks ke clipboard HP.
+  await Clipboard.setData(
+    ClipboardData(text: alamat),
+  );
+
+  // Setelah berhasil, tampilkan popup notifikasi.
+  if (context.mounted) {
+    AppNotification.showSuccess(
+      context,
+      'Alamat berhasil disalin!',
+    );
+  }
+}
+
+// Fungsi untuk menyalin link Google Maps ke clipboard.
+// ignore: unused_element
+  Future<void> _salinLinkMaps(BuildContext context, String link) async {
+    // Jika link kosong, tidak perlu disalin.
+    if (link.isEmpty) {
+      AppNotification.showInfo(
+        context,
+        'Link Google Maps tidak tersedia.',
+      );
+      return;
+    }
+
+    // Clipboard.setData digunakan untuk menyalin link ke clipboard HP.
+    await Clipboard.setData(
+      ClipboardData(text: link),
+    );
+
+    // Setelah berhasil, tampilkan popup notifikasi.
+    if (context.mounted) {
+      AppNotification.showSuccess(
+        context,
+        'Link berhasil disalin!',
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -612,30 +662,11 @@ class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
                             const SizedBox(height: 12),
 
                             GestureDetector(
-                              onTap: () async {
-                                if (zoo.alamat.isNotEmpty) {
-                                  await Clipboard.setData(
-                                      ClipboardData(text: zoo.alamat));
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Row(
-                                          children: [
-                                            HugeIcon(
-                                              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                                              color: Colors.white,
-                                              size: 18,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            const Text('Alamat berhasil disalin!'),
-                                          ],
-                                        ),
-                                        backgroundColor: AppTheme.primary,
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                }
+                              onTap: () {
+                                _salinAlamat(
+                                  context,
+                                  zoo.alamat,
+                                );
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -693,28 +724,11 @@ class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
                             // Link Google Maps — tap to copy
                             if (zoo.link_gmaps.isNotEmpty)
                               GestureDetector(
-                                onTap: () async {
-                                  await Clipboard.setData(
-                                      ClipboardData(text: zoo.link_gmaps));
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Row(
-                                          children: [
-                                            HugeIcon(
-                                              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                                              color: Colors.white,
-                                              size: 18,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            const Text('Link berhasil disalin!'),
-                                          ],
-                                        ),
-                                        backgroundColor: AppTheme.primary,
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
+                                onTap: () {
+                                  _salinLinkMaps(
+                                    context,
+                                    zoo.link_gmaps,
+                                  );
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
@@ -796,8 +810,9 @@ class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
                                       initialCenter:
                                           LatLng(coords[0], coords[1]),
                                       initialZoom: 15,
-                                      onTap: (_, __) =>
-                                          _bukaMaps(zoo.link_gmaps),
+                                      onTap: (tapPosition, latLng) {
+                                        _bukaMaps(zoo.link_gmaps);
+                                      },
                                       interactionOptions:
                                           const InteractionOptions(
                                         flags: InteractiveFlag.none,

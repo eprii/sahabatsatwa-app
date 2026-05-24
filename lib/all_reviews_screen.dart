@@ -223,6 +223,7 @@ class _AllReviewsScreenState extends State<AllReviewsScreen> {
                 child: ReviewCard(
                   doc: reviews[index],
                   ratingsMap: ratingsMap,
+                  showActions: true,
                 ),
               );
             },

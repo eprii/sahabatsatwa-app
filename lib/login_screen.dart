@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import 'register_screen.dart';
 import 'main.dart';
+import 'app_notification.dart';
 
 // Halaman login digunakan untuk masuk ke aplikasi
 // menggunakan email dan password dari Firebase Authentication.
@@ -26,8 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
   // Controller digunakan untuk mengambil isi input password.
   final TextEditingController _passwordController = TextEditingController();
 
-  // Variabel ini digunakan untuk menyimpan pesan error login.
-  String _errorMessage = '';
 
   // Variabel ini digunakan untuk menyembunyikan atau menampilkan password.
   bool _hidePassword = true;
@@ -53,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // Fungsi ini dijalankan saat tombol login ditekan.
+  // Fungsi ini dijalankan saat tombol login ditekan.
   void _login() async {
     // Ambil isi email dari TextField dan hapus spasi depan/belakang.
     String email = _emailController.text.trim();
@@ -62,18 +62,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Validasi sederhana: email tidak boleh kosong.
     if (email.isEmpty) {
-      setState(() {
-        _errorMessage = 'Email tidak boleh kosong';
-      });
+      AppNotification.showError(
+        context,
+        'Email tidak boleh kosong',
+      );
 
       return;
     }
 
     // Validasi sederhana: password tidak boleh kosong.
     if (password.isEmpty) {
-      setState(() {
-        _errorMessage = 'Password tidak boleh kosong';
-      });
+      AppNotification.showError(
+        context,
+        'Password tidak boleh kosong',
+      );
 
       return;
     }
@@ -81,7 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
     // Loading dinyalakan agar user tahu proses login sedang berjalan.
     setState(() {
       _isLoading = true;
-      _errorMessage = '';
     });
 
     try {
@@ -92,9 +93,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       // Jika login berhasil dan user tidak null,
-      // maka user diarahkan ke AuthWrapper.
+      // maka tampilkan notifikasi berhasil lalu pindah ke AuthWrapper.
       if (userCredential.user != null) {
         if (mounted) {
+          AppNotification.showSuccess(
+            context,
+            'Login berhasil',
+          );
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -109,12 +115,48 @@ class _LoginScreenState extends State<LoginScreen> {
         // setelah halaman login diganti.
         return;
       }
-    } catch (e) {
-      // Jika login gagal, pesan error disimpan ke _errorMessage.
+    } on FirebaseAuthException catch (e) {
+      // Jika login gagal dari Firebase, tampilkan pesan error.
       if (mounted) {
-        setState(() {
-          _errorMessage = 'Email atau password salah';
-        });
+        if (e.code == 'invalid-email') {
+          AppNotification.showError(
+            context,
+            'Format email tidak valid',
+          );
+        } else if (e.code == 'user-disabled') {
+          AppNotification.showError(
+            context,
+            'Akun ini telah dinonaktifkan',
+          );
+        } else if (e.code == 'user-not-found') {
+          AppNotification.showError(
+            context,
+            'Email belum terdaftar',
+          );
+        } else if (e.code == 'wrong-password') {
+          AppNotification.showError(
+            context,
+            'Password salah',
+          );
+        } else if (e.code == 'invalid-credential') {
+          AppNotification.showError(
+            context,
+            'Email atau password salah',
+          );
+        } else {
+          AppNotification.showError(
+            context,
+            'Login gagal',
+          );
+        }
+      }
+    } catch (e) {
+      // Error umum selain FirebaseAuthException.
+      if (mounted) {
+        AppNotification.showError(
+          context,
+          'Login gagal',
+        );
       }
     }
 
@@ -333,16 +375,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       const SizedBox(height: 12),
 
-                      // Pesan error login.
-                      // Jika _errorMessage kosong, widget tidak ditampilkan.
-                      if (_errorMessage.isNotEmpty)
-                        Text(
-                          _errorMessage,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 13,
-                          ),
-                        ),
+   
 
                       const SizedBox(height: 28),
 

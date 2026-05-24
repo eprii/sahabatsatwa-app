@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'sahabat_satwa_model.dart';
 import 'app_theme.dart';
+import 'app_notification.dart';
 
 // Halaman ini digunakan oleh admin untuk mengedit data destinasi.
 // Data awal diambil dari object SahabatSatwa yang dikirim dari halaman sebelumnya.
@@ -200,15 +201,20 @@ class _EditState extends State<EditSahabatSatwaScreen> {
 
   // Fungsi untuk menyimpan perubahan data ke Firestore.
   Future<void> _simpanPerubahan() async {
-    // Jika form belum valid, proses simpan dihentikan.
+    // Jika form belum valid, tampilkan popup error dan hentikan proses.
     if (!_formKey.currentState!.validate()) {
+      AppNotification.showError(
+        context,
+        'Periksa kembali data yang wajib diisi.',
+      );
+
       return;
     }
 
     final koordinat = koordinatController.text.trim();
     final linkInput = linkGmapsController.text.trim();
 
-    // Jika link Google Maps kosong, maka dibuat link otomatis dari koordinat.
+    // Jika link Google Maps kosong, maka buat link otomatis dari koordinat.
     String linkGmaps;
 
     if (linkInput.isNotEmpty) {
@@ -217,7 +223,7 @@ class _EditState extends State<EditSahabatSatwaScreen> {
       linkGmaps = 'https://www.google.com/maps/search/?api=1&query=$koordinat';
     }
 
-    // Membuat object SahabatSatwa baru dengan data yang sudah diedit.
+    // Membuat object SahabatSatwa baru dari data yang sudah diedit.
     final updated = SahabatSatwa(
       id_zoo: widget.data.id_zoo,
       nama_zoo: namaController.text.trim(),
@@ -233,12 +239,27 @@ class _EditState extends State<EditSahabatSatwaScreen> {
       provinsi: _selectedProvinsi,
     );
 
-    // Mengirim data baru ke model untuk diupdate ke Firestore.
-    await SahabatSatwa.updateData(widget.data.id_zoo, updated);
+    try {
+      // Mengupdate data ke Firestore.
+      await SahabatSatwa.updateData(widget.data.id_zoo, updated);
 
-    // Setelah berhasil simpan, kembali ke halaman sebelumnya.
-    if (mounted) {
-      Navigator.pop(context);
+      if (mounted) {
+        // Notifikasi tetap muncul walaupun halaman langsung kembali,
+        // karena AppNotification memakai rootOverlay.
+        AppNotification.showSuccess(
+          context,
+          'Data berhasil diperbarui.',
+        );
+
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppNotification.showError(
+          context,
+          'Gagal memperbarui data.',
+        );
+      }
     }
   }
 

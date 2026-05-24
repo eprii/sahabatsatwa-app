@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import 'login_screen.dart';
+import 'app_notification.dart';
 
 // Halaman register digunakan untuk membuat akun user baru.
 // Akun dibuat di Firebase Authentication, lalu data profil disimpan ke Firestore.
@@ -38,8 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  // Variabel untuk menyimpan pesan error.
-  String _errorMessage = '';
+
 
   // Warna utama halaman register, disamakan dengan halaman login.
   static const Color _kBg = Color(0xFF7B8860);
@@ -77,98 +77,97 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     // Validasi nama depan.
     if (namaDepan.isEmpty) {
-      setState(() {
-        _errorMessage = 'Nama depan tidak boleh kosong';
-      });
-
+      AppNotification.showError(
+        context,
+        'Nama depan tidak boleh kosong',
+      );
       return;
     }
 
     // Validasi username.
     if (username.isEmpty) {
-      setState(() {
-        _errorMessage = 'Username tidak boleh kosong';
-      });
-
+      AppNotification.showError(
+        context,
+        'Username tidak boleh kosong',
+      );
       return;
     }
 
     // Validasi nomor telepon.
     if (noTelepon.isEmpty) {
-      setState(() {
-        _errorMessage = 'Nomor telepon tidak boleh kosong';
-      });
-
+      AppNotification.showError(
+        context,
+        'Nomor telepon tidak boleh kosong',
+      );
       return;
     }
 
     // Validasi email.
     if (email.isEmpty) {
-      setState(() {
-        _errorMessage = 'Email tidak boleh kosong';
-      });
-
+      AppNotification.showError(
+        context,
+        'Email tidak boleh kosong',
+      );
       return;
     }
 
     // Validasi sederhana format email.
     if (!email.contains('@')) {
-      setState(() {
-        _errorMessage = 'Format email tidak valid';
-      });
-
+      AppNotification.showError(
+        context,
+        'Format email tidak valid',
+      );
       return;
     }
 
     // Validasi alamat.
     if (alamat.isEmpty) {
-      setState(() {
-        _errorMessage = 'Alamat tidak boleh kosong';
-      });
-
+      AppNotification.showError(
+        context,
+        'Alamat tidak boleh kosong',
+      );
       return;
     }
 
     // Validasi password.
     if (password.isEmpty) {
-      setState(() {
-        _errorMessage = 'Password tidak boleh kosong';
-      });
-
+      AppNotification.showError(
+        context,
+        'Password tidak boleh kosong',
+      );
       return;
     }
 
     // Firebase Authentication minimal password adalah 6 karakter.
     if (password.length < 6) {
-      setState(() {
-        _errorMessage = 'Password minimal 6 karakter';
-      });
-
+      AppNotification.showError(
+        context,
+        'Password minimal 6 karakter',
+      );
       return;
     }
 
     // Validasi konfirmasi password.
     if (confirmPassword.isEmpty) {
-      setState(() {
-        _errorMessage = 'Konfirmasi password tidak boleh kosong';
-      });
-
+      AppNotification.showError(
+        context,
+        'Konfirmasi password tidak boleh kosong',
+      );
       return;
     }
 
     // Mengecek apakah password dan konfirmasi password sama.
     if (confirmPassword != password) {
-      setState(() {
-        _errorMessage = 'Password tidak cocok';
-      });
-
+      AppNotification.showError(
+        context,
+        'Password tidak cocok',
+      );
       return;
     }
 
     // Jika semua validasi lolos, loading dinyalakan.
     setState(() {
       _isLoading = true;
-      _errorMessage = '';
     });
 
     try {
@@ -198,11 +197,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await _auth.signOut();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Akun berhasil dibuat! Silakan login.'),
-            backgroundColor: Colors.green,
-          ),
+        // Notifikasi sukses muncul dengan background hijau.
+        // Karena AppNotification memakai rootOverlay,
+        // popup tetap muncul walaupun halaman langsung pindah.
+        AppNotification.showSuccess(
+          context,
+          'Akun berhasil dibuat! Silakan login.',
         );
 
         // Setelah berhasil daftar, pindah ke halaman login.
@@ -223,24 +223,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } on FirebaseAuthException catch (e) {
       // Error khusus dari Firebase Authentication.
       if (mounted) {
-        setState(() {
-          if (e.code == 'email-already-in-use') {
-            _errorMessage = 'Email sudah digunakan. Coba email lain.';
-          } else if (e.code == 'weak-password') {
-            _errorMessage = 'Password terlalu lemah. Minimal 6 karakter.';
-          } else if (e.code == 'invalid-email') {
-            _errorMessage = 'Format email tidak valid.';
-          } else {
-            _errorMessage = 'Registrasi gagal. Coba lagi.';
-          }
-        });
+        if (e.code == 'email-already-in-use') {
+          AppNotification.showError(
+            context,
+            'Email sudah digunakan. Coba email lain.',
+          );
+        } else if (e.code == 'weak-password') {
+          AppNotification.showError(
+            context,
+            'Password terlalu lemah. Minimal 6 karakter.',
+          );
+        } else if (e.code == 'invalid-email') {
+          AppNotification.showError(
+            context,
+            'Format email tidak valid.',
+          );
+        } else {
+          AppNotification.showError(
+            context,
+            'Registrasi gagal. Coba lagi.',
+          );
+        }
       }
     } catch (e) {
       // Error umum selain FirebaseAuthException.
       if (mounted) {
-        setState(() {
-          _errorMessage = 'Terjadi kesalahan. Coba lagi.';
-        });
+        AppNotification.showError(
+          context,
+          'Terjadi kesalahan. Coba lagi.',
+        );
       }
     }
 
@@ -251,7 +262,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
     }
   }
-
   // Widget ini digunakan untuk icon biasa di kanan input.
   // Padding kanan dibuat mirip dengan halaman login.
   Widget _buildSuffixIcon(List<List<dynamic>> icon) {
@@ -557,16 +567,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                       const SizedBox(height: 12),
 
-                      // Pesan error register.
-                      // Jika _errorMessage kosong, widget ini tidak ditampilkan.
-                      if (_errorMessage.isNotEmpty)
-                        Text(
-                          _errorMessage,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 13,
-                          ),
-                        ),
+
 
                       const SizedBox(height: 28),
 

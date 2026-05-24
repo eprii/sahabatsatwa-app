@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'sahabat_satwa_model.dart';
 import 'app_theme.dart';
+import 'app_notification.dart';
 
 // Halaman ini digunakan oleh admin untuk menambah data destinasi baru.
 // Data yang diinput akan disimpan ke collection "destination" di Firestore.
@@ -193,8 +194,14 @@ class _TambahState extends State<TambahSahabatSatwaScreen> {
 
   // Fungsi ini dijalankan saat tombol tambah ditekan.
   Future<void> _tambahData() async {
-    // Jika form belum valid, proses tambah data dihentikan.
+    // Jika form belum valid, tampilkan popup error dan hentikan proses.
+    // Validator di tiap field tetap akan menampilkan error di bawah input.
     if (!_formKey.currentState!.validate()) {
+      AppNotification.showError(
+        context,
+        'Periksa kembali data yang wajib diisi.',
+      );
+
       return;
     }
 
@@ -229,12 +236,29 @@ class _TambahState extends State<TambahSahabatSatwaScreen> {
       provinsi: _selectedProvinsi,
     );
 
-    // Menyimpan data baru ke Firestore lewat fungsi addData di model.
-    await SahabatSatwa.addData(data);
+    try {
+      // Menyimpan data baru ke Firestore lewat fungsi addData di model.
+      await SahabatSatwa.addData(data);
 
-    // Setelah berhasil menambah data, kembali ke halaman sebelumnya.
-    if (mounted) {
-      Navigator.pop(context);
+      if (mounted) {
+        // Karena AppNotification memakai rootOverlay,
+        // popup tetap bisa muncul walaupun halaman langsung ditutup.
+        AppNotification.showSuccess(
+          context,
+          'Destinasi berhasil ditambahkan.',
+        );
+
+        // Setelah berhasil menambah data, kembali ke halaman sebelumnya.
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      // Jika proses simpan gagal, tampilkan popup error.
+      if (mounted) {
+        AppNotification.showError(
+          context,
+          'Gagal menambahkan destinasi.',
+        );
+      }
     }
   }
 
