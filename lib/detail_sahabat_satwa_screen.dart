@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -8,21 +6,82 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hugeicons/hugeicons.dart';
+
 import 'sahabat_satwa_model.dart';
 import 'edit_sahabat_satwa_screen.dart';
 import 'app_theme.dart';
+import 'rating_review_section.dart'; // Berisi RatingSection dan ReviewSection
 
-class DetailSahabatSatwaScreen extends StatelessWidget {
+// Halaman detail destinasi.
+// Halaman ini menampilkan informasi lengkap satu kebun binatang.
+class DetailSahabatSatwaScreen extends StatefulWidget {
   final SahabatSatwa data;
-  const DetailSahabatSatwaScreen({super.key, required this.data});
 
-  Future<void> _bukaMaps(String url) async {
-    final uri = Uri.parse(url);
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  const DetailSahabatSatwaScreen({
+    super.key,
+    required this.data,
+  });
+
+  @override
+  State<DetailSahabatSatwaScreen> createState() =>
+      _DetailSahabatSatwaScreenState();
+}
+
+class _DetailSahabatSatwaScreenState extends State<DetailSahabatSatwaScreen> {
+  late final Future<String> _roleFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Role user/admin diambil sekali saat halaman dibuka.
+    // Ini mencegah request Firestore berulang saat widget rebuild.
+    _roleFuture = _ambilRoleUser();
   }
 
+  // Fungsi untuk mengambil role user dari collection users.
+  // Jika belum login, user dianggap sebagai guest.
+  Future<String> _ambilRoleUser() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid == null) {
+      return 'guest';
+    }
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+
+    if (!userDoc.exists) {
+      return 'user';
+    }
+
+    final dataUser = userDoc.data() as Map<String, dynamic>?;
+
+    return dataUser?['role'] ?? 'user';
+  }
+
+  // Fungsi untuk membuka Google Maps dari link yang tersimpan di Firestore.
+  Future<void> _bukaMaps(String url) async {
+    // Jika link kosong, fungsi langsung dihentikan.
+    if (url.isEmpty) {
+      return;
+    }
+
+    final uri = Uri.parse(url);
+
+    await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
+  // Fungsi untuk menambah atau menghapus destinasi dari favorit.
   Future<void> _toggleFavourite(BuildContext context, String idZoo) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    // Jika belum login, user tidak boleh menyimpan favorit.
     if (uid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login dulu untuk menyimpan favorit!')),
@@ -32,27 +91,29 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
 
     final favRef = FirebaseFirestore.instance.collection('favourites');
 
-    // Cek apakah sudah difavoritkan
+    // Mengecek apakah destinasi ini sudah difavoritkan oleh user.
     final existing = await favRef
         .where('id_user', isEqualTo: uid)
         .where('id_zoo', isEqualTo: idZoo)
         .get();
 
     if (existing.docs.isNotEmpty) {
-      // Sudah favorit → hapus
+      // Jika sudah ada, berarti user ingin menghapus dari favorit.
       await favRef.doc(existing.docs.first.id).delete();
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Dihapus dari favorit')),
         );
       }
     } else {
-      // Belum favorit → tambah
+      // Jika belum ada, berarti user ingin menambahkan ke favorit.
       await favRef.add({
         'id_user': uid,
         'id_zoo': idZoo,
         'saved_at': FieldValue.serverTimestamp(),
       });
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -64,11 +125,15 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _toggleLike(BuildContext context, String idZoo,
-      List likedBy, int likesCount) async {
+  // Fungsi untuk like atau unlike destinasi.
+  Future<void> _toggleLike(
+    BuildContext context,
+    String idZoo,
+    List likedBy,
+  ) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
-    // Belum login — tidak bisa like
+    // Jika belum login, user tidak boleh like.
     if (uid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login dulu untuk menyukai destinasi!')),
@@ -81,13 +146,13 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
         .doc(idZoo);
 
     if (likedBy.contains(uid)) {
-      // ✅ Sudah like — unlike
+      // Jika UID user sudah ada di liked_by, maka unlike.
       await ref.update({
         'liked_by': FieldValue.arrayRemove([uid]),
         'likes_count': FieldValue.increment(-1),
       });
     } else {
-      // ✅ Belum like — like
+      // Jika UID user belum ada di liked_by, maka like.
       await ref.update({
         'liked_by': FieldValue.arrayUnion([uid]),
         'likes_count': FieldValue.increment(1),
@@ -95,30 +160,75 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
     }
   }
 
+  // Fungsi untuk menyalin alamat ke clipboard.
+
+  // Fungsi untuk menyalin link Google Maps ke clipboard.
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
+
+      // StreamBuilder dipakai agar data destinasi update otomatis
+      // jika admin mengubah data di Firestore.
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('destination')
-            .doc(data.id_zoo)
+            .doc(widget.data.id_zoo)
             .snapshots(),
+
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          // Kondisi saat data masih dimuat.
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-                child: CircularProgressIndicator(color: Colors.white));
+              child: CircularProgressIndicator(
+                color: Colors.white,
+              ),
+            );
           }
 
+          // Kondisi jika ada error saat mengambil data.
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Gagal memuat detail destinasi.',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            );
+          }
+
+          // Kondisi jika dokumen tidak ditemukan.
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(
+              child: Text(
+                'Data destinasi tidak ditemukan.',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            );
+          }
+
+          // Mengubah data Firestore menjadi object SahabatSatwa.
           final zoo = SahabatSatwa.fromDocument(snapshot.data!);
+
+          // Mengambil koordinat dari model.
+          // Jika koordinat valid, akan digunakan untuk menampilkan map.
           final coords = zoo.parsedKoordinat;
 
           return CustomScrollView(
             slivers: [
+              // SliverAppBar digunakan karena halaman detail punya header gambar besar.
               SliverAppBar(
                 expandedHeight: 280,
                 pinned: true,
                 backgroundColor: AppTheme.primaryDark,
+
+                // Tombol kembali.
                 leading: Padding(
                   padding: const EdgeInsets.all(8),
                   child: CircleAvatar(
@@ -129,34 +239,31 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                         color: Colors.white,
                         size: 20,
                       ),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
                     ),
                   ),
                 ),
+
+                // Tombol edit hanya tampil jika role adalah admin.
                 actions: [
-                  FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser?.uid)
-                        .get(),
+                  FutureBuilder<String>(
+                    future: _roleFuture,
                     builder: (context, userSnap) {
-                      // ✅ Handle loading state
                       if (userSnap.connectionState == ConnectionState.waiting) {
                         return const SizedBox();
                       }
 
-                      // ✅ Handle error state
                       if (userSnap.hasError) {
                         return const SizedBox();
                       }
 
-                      final role = userSnap.data?.exists == true
-                          ? (userSnap.data!.data()
-                                  as Map<String, dynamic>)['role'] ??
-                              'user'
-                          : 'user';
+                      final role = userSnap.data ?? 'user';
 
-                      if (role != 'admin') return const SizedBox();
+                      if (role != 'admin') {
+                        return const SizedBox();
+                      }
 
                       return Padding(
                         padding: const EdgeInsets.all(8),
@@ -168,43 +275,63 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                               color: Colors.white,
                               size: 18,
                             ),
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      EditSahabatSatwaScreen(data: zoo)),
-                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) {
+                                    return EditSahabatSatwaScreen(data: zoo);
+                                  },
+                                ),
+                              );
+                            },
                           ),
                         ),
                       );
                     },
                   ),
                 ],
+
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
+                      // Gambar utama destinasi.
+                      // errorBuilder dipakai jika gambar gagal dimuat.
                       zoo.foto_url.isNotEmpty
-                          ? Image.network(zoo.foto_url,
+                          ? Image.network(
+                              zoo.foto_url,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  Container(color: AppTheme.primaryDark))
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: AppTheme.primaryDark,
+                                );
+                              },
+                            )
                           : Container(
                               color: AppTheme.primaryDark,
                               child: HugeIcon(
                                 icon: HugeIcons.strokeRoundedImage01,
                                 color: Colors.white30,
                                 size: 60,
-                              )),
+                              ),
+                            ),
+
+                      // Gradient agar tulisan nama destinasi tetap terbaca.
                       const DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Colors.black54],
+                            colors: [
+                              Colors.transparent,
+                              Colors.black54,
+                            ],
                           ),
                         ),
                       ),
+
+                      // Nama dan alamat singkat di atas gambar.
                       Positioned(
                         bottom: 20,
                         left: 20,
@@ -219,11 +346,16 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
                                 shadows: [
-                                  Shadow(color: Colors.black45, blurRadius: 8)
+                                  Shadow(
+                                    color: Colors.black45,
+                                    blurRadius: 8,
+                                  ),
                                 ],
                               ),
                             ),
+
                             const SizedBox(height: 4),
+
                             Row(
                               children: [
                                 HugeIcon(
@@ -231,12 +363,16 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                                   color: Colors.white70,
                                   size: 14,
                                 ),
+
                                 const SizedBox(width: 4),
+
                                 Expanded(
                                   child: Text(
                                     zoo.alamat.isNotEmpty ? zoo.alamat : '-',
                                     style: const TextStyle(
-                                        color: Colors.white70, fontSize: 13),
+                                      color: Colors.white70,
+                                      fontSize: 13,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -251,158 +387,201 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                 ),
               ),
 
+              // SliverToBoxAdapter dipakai agar widget biasa seperti Column
+              // bisa masuk ke dalam CustomScrollView.
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
+                      // Menampilkan rating rata-rata dan rating user.
+                      RatingSection(idZoo: zoo.id_zoo),
 
-                      // ✅ LIKE + SAVE + SHARE BAR
-                      Builder(builder: (context) {
-                        final uid = FirebaseAuth.instance.currentUser?.uid;
-                        final rawData = snapshot.data!.data()
-                            as Map<String, dynamic>;
-                        final likedBy = List.from(rawData['liked_by'] ?? []);
-                        final likesCount = rawData['likes_count'] ?? 0;
-                        final isLiked = uid != null && likedBy.contains(uid);
-
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black.withOpacity(0.06),
-                                  blurRadius: 8),
-                            ],
-                          ),
-                          child: FutureBuilder<DocumentSnapshot>(
-                            future: FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(FirebaseAuth.instance.currentUser?.uid)
-                                .get(),
-                            builder: (context, userSnap) {
-                              // ✅ Handle loading state
-                              if (userSnap.connectionState == ConnectionState.waiting) {
-                                return const SizedBox(
-                                  height: 40,
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              // ✅ Handle error state
-                              if (userSnap.hasError) {
-                                return Expanded(
-                                  child: Text(
-                                    'Error memuat data',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppTheme.textMuted,
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              final role = userSnap.data?.exists == true
-                                  ? (userSnap.data!.data()
-                                          as Map<String, dynamic>)['role'] ??
-                                      'user'
-                                  : 'user';
-
-                              return Row(
-                                children: [
-                                  // Like button + count (hidden for admin)
-                                  if (role != 'admin') ...[
-                                    GestureDetector(
-                                      onTap: () => _toggleLike(
-                                          context,
-                                          zoo.id_zoo,
-                                          likedBy,
-                                          likesCount),
-                                      child: Icon(
-                                        isLiked
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: isLiked
-                                            ? Colors.red
-                                            : AppTheme.textMuted,
-                                        size: 26,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                  ],
-                                  // Like count (always visible)
-                                  Expanded(
-                                    child: Text(
-                                      '$likesCount orang menyukai destinasi ini',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppTheme.textMuted,
-                                      ),
-                                    ),
-                                  ),
-                                  // Save button (hidden for admin)
-                                  if (role != 'admin') ...[
-                                    const SizedBox(width: 16),
-                                    StreamBuilder<QuerySnapshot>(
-                                      stream: FirebaseFirestore.instance
-                                          .collection('favourites')
-                                          .where('id_user',
-                                              isEqualTo: FirebaseAuth
-                                                  .instance.currentUser?.uid)
-                                          .where('id_zoo', isEqualTo: zoo.id_zoo)
-                                          .snapshots(),
-                                      builder: (context, favSnap) {
-                                        final isFav = favSnap.hasData &&
-                                            favSnap.data!.docs.isNotEmpty;
-                                        return GestureDetector(
-                                          onTap: () => _toggleFavourite(
-                                              context, zoo.id_zoo),
-                                          child: HugeIcon(
-                                            icon: isFav
-                                                ? HugeIcons
-                                                    .strokeRoundedBookmarkCheck02
-                                                : HugeIcons
-                                                    .strokeRoundedBookmarkAdd01,
-                                            color: isFav
-                                                ? const Color.fromARGB(
-                                                    255, 69, 185, 15)
-                                                : AppTheme.textMuted,
-                                            size: 26,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ],
-                              );
-                            },
-                          ),
-                        );
-                      }),
                       const SizedBox(height: 12),
 
-                      // Tentang
+                      // Bar untuk like dan favorit.
+                      Builder(
+                        builder: (context) {
+                          final uid = FirebaseAuth.instance.currentUser?.uid;
+                          final rawData =
+                              snapshot.data!.data() as Map<String, dynamic>;
+
+                          // liked_by adalah list UID user yang sudah like.
+                          final likedBy = List.from(
+                            rawData['liked_by'] ?? [],
+                          );
+
+                          final likesCount = rawData['likes_count'] ?? 0;
+
+                          // Cek apakah user saat ini sudah like.
+                          final isLiked =
+                              uid != null && likedBy.contains(uid);
+
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+
+                            // FutureBuilder digunakan untuk mengetahui role.
+                            // Jika admin, tombol like dan favorit disembunyikan.
+                            child: FutureBuilder<String>(
+                              future: _roleFuture,
+                              builder: (context, userSnap) {
+                                if (userSnap.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const SizedBox(
+                                    height: 40,
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                if (userSnap.hasError) {
+                                  return const SizedBox(
+                                    height: 40,
+                                    child: Center(
+                                      child: Text(
+                                        'Error memuat data',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                final role = userSnap.data ?? 'user';
+
+                                return Row(
+                                  children: [
+                                    // Tombol like hanya muncul untuk non-admin.
+                                    if (role != 'admin') ...[
+                                      GestureDetector(
+                                        onTap: () {
+                                          _toggleLike(
+                                            context,
+                                            zoo.id_zoo,
+                                            likedBy,
+                                          );
+                                        },
+                                        child: Icon(
+                                          isLiked
+                                              ? Icons.favorite
+                                              : Icons.favorite_border,
+                                          color: isLiked
+                                              ? Colors.red
+                                              : AppTheme.textMuted,
+                                          size: 26,
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 8),
+                                    ],
+
+                                    // Jumlah like tetap tampil untuk semua role.
+                                    Expanded(
+                                      child: Text(
+                                        '$likesCount orang menyukai destinasi ini',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Tombol favorit hanya muncul untuk non-admin.
+                                    if (role != 'admin') ...[
+                                      const SizedBox(width: 16),
+
+                                      // StreamBuilder ini mengecek apakah destinasi
+                                      // sudah ada di favorit user.
+                                      StreamBuilder<QuerySnapshot>(
+                                        stream: FirebaseFirestore.instance
+                                            .collection('favourites')
+                                            .where(
+                                              'id_user',
+                                              isEqualTo: FirebaseAuth.instance
+                                                  .currentUser?.uid,
+                                            )
+                                            .where(
+                                              'id_zoo',
+                                              isEqualTo: zoo.id_zoo,
+                                            )
+                                            .snapshots(),
+
+                                        builder: (context, favSnap) {
+                                          final isFav = favSnap.hasData &&
+                                              favSnap.data!.docs.isNotEmpty;
+
+                                          return GestureDetector(
+                                            onTap: () {
+                                              _toggleFavourite(
+                                                context,
+                                                zoo.id_zoo,
+                                              );
+                                            },
+                                            child: HugeIcon(
+                                              icon: isFav
+                                                  ? HugeIcons
+                                                      .strokeRoundedBookmarkCheck02
+                                                  : HugeIcons
+                                                      .strokeRoundedBookmarkAdd01,
+                                              color: isFav
+                                                  ? const Color.fromARGB(
+                                                      255,
+                                                      69,
+                                                      185,
+                                                      15,
+                                                    )
+                                                  : AppTheme.textMuted,
+                                              size: 26,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Section deskripsi destinasi.
                       _SectionCard(
                         title: 'Tentang',
                         child: Text(
                           zoo.deskripsi.isNotEmpty ? zoo.deskripsi : '-',
                           style: const TextStyle(
-                              fontSize: 14,
-                              color: AppTheme.textDark,
-                              height: 1.6),
+                            fontSize: 14,
+                            color: AppTheme.textDark,
+                            height: 1.6,
+                          ),
                         ),
                       ),
+
                       const SizedBox(height: 12),
 
-                      // Visit Information
+                      // Section informasi kunjungan.
                       _SectionCard(
                         title: 'Visit Information',
                         child: Column(
@@ -412,7 +591,9 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                               label: 'Jam Operasional',
                               value: '${zoo.jam_buka} - ${zoo.jam_tutup}',
                             ),
+
                             const SizedBox(height: 12),
+
                             _InfoRow(
                               icon: HugeIcons.strokeRoundedCall,
                               label: 'Kontak',
@@ -658,6 +839,11 @@ class DetailSahabatSatwaScreen extends StatelessWidget {
                                         Text('Koordinat tidak tersedia')),
                               ),
                       ),
+                      const SizedBox(height: 20),
+
+                      // ── REVIEW SECTION ───────────────────────────────────
+                      // Tampilkan 5 preview review + input field kirim review
+                      ReviewSection(idZoo: zoo.id_zoo),
                       const SizedBox(height: 20),
                     ],
                   ),

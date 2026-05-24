@@ -122,8 +122,21 @@ class _MainNavigationState extends State<MainNavigation> {
           backgroundColor: Colors.white,
           selectedItemColor: AppTheme.primary,
           unselectedItemColor: Colors.grey,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
+
+          // Style label ketika item sedang aktif.
+          selectedLabelStyle: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+
+          // Style label ketika item tidak aktif.
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.normal,
+          ),
+          
           elevation: 0,
           items: [
             BottomNavigationBarItem(
@@ -146,18 +159,18 @@ class _MainNavigationState extends State<MainNavigation> {
                   icon: HugeIcons.strokeRoundedSearch01,
                   color: AppTheme.primary,
                   size: 24),
-              label: 'Search',
+              label: 'Cari',
             ),
             BottomNavigationBarItem(
               icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedPlusSign,
                   color: Colors.grey,
-                  size: 32),
+                  size: 24),
               activeIcon: HugeIcon(
                   icon: HugeIcons.strokeRoundedPlusSign,
                   color: AppTheme.primary,
-                  size: 32),
-              label: 'Admin',
+                  size: 24),
+              label: 'Tambah',
             ),
             BottomNavigationBarItem(
               icon: HugeIcon(
@@ -168,7 +181,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   icon: HugeIcons.strokeRoundedUser,
                   color: AppTheme.primary,
                   size: 24),
-              label: 'Profile',
+              label: 'Profil',
             ),
           ],
         ),

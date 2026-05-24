@@ -88,7 +88,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: TextField(
                       controller: _searchController,
                       decoration: const InputDecoration(
-                        hintText: 'Cari kebun binatang...',
+                        hintText: 'Cari kebun binatang atau provinsi...',
                         hintStyle: TextStyle(color: AppTheme.textMuted),
                         border: InputBorder.none,
                       ),
